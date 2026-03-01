@@ -52,7 +52,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-results-${{ matrix.os }}-${{ matrix.browser }}
           path: |
@@ -63,7 +63,7 @@ jobs:
 
       - name: Upload screenshots on failure
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-screenshots-${{ matrix.os }}-${{ matrix.browser }}
           path: test-results/
@@ -101,7 +101,7 @@ jobs:
 
       - name: Upload mobile test results
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-mobile-results-${{ matrix.device }}
           path: |
@@ -141,7 +141,7 @@ jobs:
         run: npx playwright show-report --host 0.0.0.0 || true
 
       - name: Upload merged report
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-merged-report
           path: playwright-report/
@@ -181,7 +181,7 @@ jobs:
 
       - name: Upload accessibility results
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: accessibility-results
           path: |
