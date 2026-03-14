@@ -28,7 +28,10 @@ export const JQPlayground: React.FC = () => {
   };
 
   return (
-    <Paper data-testid="jq-playground" sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 2 }}>
+    <Paper
+      data-testid="jq-playground"
+      sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 2 }}
+    >
       <Typography variant="h6" gutterBottom>
         JQ Playground
       </Typography>
@@ -36,7 +39,10 @@ export const JQPlayground: React.FC = () => {
       <Box sx={{ display: 'flex', gap: 2, flexGrow: 1, minHeight: 0 }}>
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
           <Typography variant="subtitle2">Input JSON</Typography>
-          <Box data-testid="jq-input-editor" sx={{ flexGrow: 1, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+          <Box
+            data-testid="jq-input-editor"
+            sx={{ flexGrow: 1, border: 1, borderColor: 'divider', borderRadius: 1 }}
+          >
             <Editor
               height="100%"
               language="json"
@@ -87,7 +93,10 @@ export const JQPlayground: React.FC = () => {
           </Button>
 
           <Typography variant="subtitle2">Output</Typography>
-          <Box data-testid="jq-output-display" sx={{ flexGrow: 1, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+          <Box
+            data-testid="jq-output-display"
+            sx={{ flexGrow: 1, border: 1, borderColor: 'divider', borderRadius: 1 }}
+          >
             {result && (
               <>
                 {result.success ? (

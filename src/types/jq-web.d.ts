@@ -3,5 +3,5 @@ declare module 'jq-web' {
     json(data: any, filter: string): Promise<any>;
   }
 
-  export default function(): Promise<JQ>;
+  export default function (): Promise<JQ>;
 }

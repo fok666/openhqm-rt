@@ -9,18 +9,19 @@
 
 ## 1. Executive Summary
 
-OpenHQM Router Manager is a **pure client-side** web application for creating, testing, and managing OpenHQM routing rules. It runs entirely in the browser with no backend required. Users can visually design routes, test JQ transformations in real-time, simulate message routing, and export configurations as Kubernetes ConfigMaps.
+OpenHQM Router Manager is a **pure client-side** web application for creating and testing OpenHQM routing rules. It runs entirely in the browser with no backend required. Users can visually design routes, test JQ transformations in real-time, simulate message routing, and export configurations as Kubernetes ConfigMaps.
 
-**Deployment**: GitHub Pages static site - `https://fok666.github.io/openhqm-rm/`
+**Deployment**: GitHub Pages static site - `https://yourusername.github.io/openhqm-rm/`
 
 ### 1.1 Purpose
-Provide an easy-to-use, no-installation-required web tool for creating and testing OpenHQM route configurations. Users can access it instantly from any browser, create routes visually, test with sample data, and download YAML configurations for deployment.
+Provide an easy-to-use, no-installation-required web tool for creating and testing OpenHQM route configurations. Users can access it instantly from any browser, create routes visually, test with sample data, and download YAML configurations for deployment. Import and export functionality allows users to manage their routes as Kubernetes ConfigMaps.
 
 ### 1.2 Key Features
 - **Zero Installation**: Access instantly via web browser, no setup required
 - **Visual Route Editor**: Drag-and-drop interface for creating routing rules
 - **JQ Transform Simulator**: Real-time payload transformation using JQ (WebAssembly)
 - **Route Testing & Simulation**: Validate routing logic against test payloads
+- **ConfigMap Import**: Import routes from Kubernetes ConfigMaps (YAML/JSON)
 - **ConfigMap Export**: Download routes as Kubernetes ConfigMaps (YAML/JSON)
 - **Local Storage**: Save work in progress in browser localStorage
 - **Multi-Route Management**: Create and organize multiple route configurations
@@ -962,7 +963,7 @@ export const settings = {
   app: {
     name: 'OpenHQM Router Manager',
     version: '2.0.0',
-    repository: 'https://github.com/fok666/openhqm-rm'
+    repository: 'https://github.com/yourusername/openhqm-router-manager'
   },
   
   storage: {

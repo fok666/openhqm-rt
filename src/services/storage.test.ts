@@ -38,9 +38,9 @@ describe('StorageService', () => {
   describe('saveRoutes', () => {
     it('should save routes to localStorage', () => {
       const routes = [mockRoute];
-      
+
       storageService.saveRoutes(routes);
-      
+
       const saved = localStorage.getItem('openhqm_routes');
       expect(saved).toBeDefined();
       expect(JSON.parse(saved!)).toEqual(routes);
@@ -49,10 +49,10 @@ describe('StorageService', () => {
     it('should overwrite existing routes', () => {
       const routes1 = [mockRoute];
       const routes2 = [{ ...mockRoute, id: 'route-002', name: 'New Route' }];
-      
+
       storageService.saveRoutes(routes1);
       storageService.saveRoutes(routes2);
-      
+
       const saved = localStorage.getItem('openhqm_routes');
       expect(JSON.parse(saved!)).toEqual(routes2);
     });
@@ -62,23 +62,23 @@ describe('StorageService', () => {
     it('should load routes from localStorage', () => {
       const routes = [mockRoute];
       localStorage.setItem('openhqm_routes', JSON.stringify(routes));
-      
+
       const loaded = storageService.loadRoutes();
-      
+
       expect(loaded).toEqual(routes);
     });
 
     it('should return empty array when no routes exist', () => {
       const loaded = storageService.loadRoutes();
-      
+
       expect(loaded).toEqual([]);
     });
 
     it('should return empty array on invalid JSON', () => {
       localStorage.setItem('openhqm_routes', 'invalid json');
-      
+
       const loaded = storageService.loadRoutes();
-      
+
       expect(loaded).toEqual([]);
     });
   });
@@ -87,9 +87,9 @@ describe('StorageService', () => {
     it('should clear routes from localStorage', () => {
       const routes = [mockRoute];
       storageService.saveRoutes(routes);
-      
+
       storageService.clearRoutes();
-      
+
       const saved = localStorage.getItem('openhqm_routes');
       expect(saved).toBeNull();
     });
@@ -98,9 +98,9 @@ describe('StorageService', () => {
   describe('exportToYAML', () => {
     it('should export routes as YAML ConfigMap', () => {
       const routes = [mockRoute];
-      
+
       const yaml = storageService.exportToYAML(routes);
-      
+
       expect(yaml).toContain('apiVersion: v1');
       expect(yaml).toContain('kind: ConfigMap');
       expect(yaml).toContain('name: openhqm-routes');
@@ -109,9 +109,9 @@ describe('StorageService', () => {
 
     it('should include route metadata in YAML', () => {
       const routes = [mockRoute];
-      
+
       const yaml = storageService.exportToYAML(routes);
-      
+
       expect(yaml).toContain('route-001');
       expect(yaml).toContain('priority: 100');
       expect(yaml).toContain('enabled: true');
@@ -121,10 +121,10 @@ describe('StorageService', () => {
   describe('exportToJSON', () => {
     it('should export routes as JSON ConfigMap', () => {
       const routes = [mockRoute];
-      
+
       const json = storageService.exportToJSON(routes);
       const parsed = JSON.parse(json);
-      
+
       expect(parsed.apiVersion).toBe('v1');
       expect(parsed.kind).toBe('ConfigMap');
       expect(parsed.metadata.name).toBe('openhqm-routes');
@@ -132,9 +132,9 @@ describe('StorageService', () => {
 
     it('should include all route data in JSON', () => {
       const routes = [mockRoute];
-      
+
       const json = storageService.exportToJSON(routes);
-      
+
       expect(json).toContain('route-001');
       expect(json).toContain('Test Route');
     });
@@ -163,9 +163,9 @@ data:
           type: endpoint
           target: test
 `;
-      
+
       const routes = storageService.importFromYAML(yamlContent);
-      
+
       expect(routes).toHaveLength(1);
       expect(routes[0].id).toBe('route-001');
       expect(routes[0].name).toBe('Imported Route');
@@ -173,7 +173,7 @@ data:
 
     it('should throw error on invalid ConfigMap format', () => {
       const invalidYaml = 'invalid: yaml';
-      
+
       expect(() => storageService.importFromYAML(invalidYaml)).toThrow();
     });
 
@@ -186,7 +186,7 @@ metadata:
 data:
   other.yaml: "content"
 `;
-      
+
       expect(() => storageService.importFromYAML(yamlContent)).toThrow();
     });
   });

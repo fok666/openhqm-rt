@@ -12,13 +12,13 @@ import {
   Divider,
   Switch,
   FormControlLabel,
-  IconButton,
   Alert,
   Snackbar,
 } from '@mui/material';
-import { Delete as DeleteIcon, Add as AddIcon, Save as SaveIcon } from '@mui/icons-material';
+import { Save as SaveIcon } from '@mui/icons-material';
+import Editor from '@monaco-editor/react';
 import { useRouteStore } from '../store';
-import type { Route, RouteCondition, DestinationConfig } from '../types';
+import type { Route } from '../types';
 
 export const RouteEditor: React.FC = () => {
   const { selectedRoute, updateRoute } = useRouteStore();
@@ -60,36 +60,15 @@ export const RouteEditor: React.FC = () => {
       setValidationError('Route name is required');
       return;
     }
-    if (!localRoute.destination?.target || localRoute.destination.target.trim() === '') {
-      setValidationError('Destination target is required');
+    if (!localRoute.endpoint || localRoute.endpoint.trim() === '') {
+      setValidationError('Endpoint is required');
       return;
     }
 
     // Save to store
-    updateRoute(localRoute.id, localRoute);
+    updateRoute(localRoute.name, localRoute);
     setValidationError('');
     setShowSuccess(true);
-  };
-
-  const handleAddCondition = () => {
-    const newCondition: RouteCondition = {
-      type: 'payload',
-      field: '',
-      operator: 'equals',
-      value: '',
-    };
-    handleUpdate({ conditions: [...localRoute.conditions, newCondition] });
-  };
-
-  const handleUpdateCondition = (index: number, updates: Partial<RouteCondition>) => {
-    const conditions = [...localRoute.conditions];
-    conditions[index] = { ...conditions[index], ...updates };
-    handleUpdate({ conditions });
-  };
-
-  const handleDeleteCondition = (index: number) => {
-    const conditions = localRoute.conditions.filter((_, i) => i !== index);
-    handleUpdate({ conditions });
   };
 
   return (
@@ -98,18 +77,21 @@ export const RouteEditor: React.FC = () => {
         Route Configuration
       </Typography>
 
+      <Divider sx={{ my: 2 }} />
+
+      {/* Basic Information */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Basic Info
+        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+          Basic Information
         </Typography>
         <TextField
-          label="Route Name"
+          label="Name"
           value={localRoute.name}
           onChange={(e) => handleUpdate({ name: e.target.value })}
           fullWidth
           margin="normal"
-          inputProps={{ 'data-testid': 'route-name-input' }}
           required
+          inputProps={{ 'data-testid': 'route-name-input' }}
         />
         <TextField
           label="Description"
@@ -121,173 +103,180 @@ export const RouteEditor: React.FC = () => {
           rows={2}
           inputProps={{ 'data-testid': 'route-description-input' }}
         />
-        <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+        <Box sx={{ display: 'flex', gap: 2, mt: 2, alignItems: 'center' }}>
           <TextField
             label="Priority"
             type="number"
-            value={localRoute.priority}
-            onChange={(e) => handleUpdate({ priority: parseInt(e.target.value) })}
+            value={localRoute.priority || 100}
+            onChange={(e) => handleUpdate({ priority: parseInt(e.target.value) || 100 })}
             sx={{ flex: 1 }}
             inputProps={{ 'data-testid': 'route-priority-input' }}
           />
           <FormControlLabel
             control={
               <Switch
-                checked={localRoute.enabled}
+                checked={localRoute.enabled !== false}
                 onChange={(e) => handleUpdate({ enabled: e.target.checked })}
               />
             }
             label="Enabled"
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={localRoute.is_default || false}
+                onChange={(e) => handleUpdate({ is_default: e.target.checked })}
+              />
+            }
+            label="Default Route"
           />
         </Box>
       </Box>
 
       <Divider sx={{ my: 3 }} />
 
+      {/* Matching Conditions */}
       <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6">Conditions</Typography>
-          <FormControl size="small" sx={{ minWidth: 120 }}>
-            <InputLabel>Operator</InputLabel>
-            <Select
-              value={localRoute.conditionOperator}
-              onChange={(e) =>
-                handleUpdate({ conditionOperator: e.target.value as 'AND' | 'OR' })
-              }
-              label="Operator"
-              data-testid="condition-operator"
-            >
-              <MenuItem value="AND">AND</MenuItem>
-              <MenuItem value="OR">OR</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-
-        {localRoute.conditions.map((condition, index) => (
-          <Paper key={index} sx={{ p: 2, mb: 2, bgcolor: 'background.default' }}>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
-              <FormControl sx={{ minWidth: 120 }}>
-                <InputLabel>Type</InputLabel>
-                <Select
-                  value={condition.type}
-                  onChange={(e) =>
-                    handleUpdateCondition(index, {
-                      type: e.target.value as RouteCondition['type'],
-                    })
-                  }
-                  label="Type"
-                  size="small"
-                  data-testid="condition-type-select"
-                >
-                  <MenuItem value="payload">Payload</MenuItem>
-                  <MenuItem value="header">Header</MenuItem>
-                  <MenuItem value="metadata">Metadata</MenuItem>
-                  <MenuItem value="jq">JQ Expression</MenuItem>
-                </Select>
-              </FormControl>
-
-              {condition.type !== 'jq' ? (
-                <>
-                  <TextField
-                    label="Field"
-                    value={condition.field || ''}
-                    onChange={(e) => handleUpdateCondition(index, { field: e.target.value })}
-                    size="small"
-                    sx={{ flex: 1 }}
-                    inputProps={{ 'data-testid': 'condition-field-input' }}
-                  />
-                  <FormControl sx={{ minWidth: 120 }}>
-                    <InputLabel>Operator</InputLabel>
-                    <Select
-                      value={condition.operator}
-                      onChange={(e) =>
-                        handleUpdateCondition(index, {
-                          operator: e.target.value as RouteCondition['operator'],
-                        })
-                      }
-                      label="Operator"
-                      size="small"
-                      data-testid="condition-operator-select"
-                    >
-                      <MenuItem value="equals">Equals</MenuItem>
-                      <MenuItem value="contains">Contains</MenuItem>
-                      <MenuItem value="regex">Regex</MenuItem>
-                      <MenuItem value="exists">Exists</MenuItem>
-                    </Select>
-                  </FormControl>
-                  <TextField
-                    label="Value"
-                    value={condition.value || ''}
-                    onChange={(e) => handleUpdateCondition(index, { value: e.target.value })}
-                    size="small"
-                    sx={{ flex: 1 }}
-                    inputProps={{ 'data-testid': 'condition-value-input' }}
-                  />
-                </>
-              ) : (
-                <TextField
-                  label="JQ Expression"
-                  value={condition.jqExpression || ''}
-                  onChange={(e) => handleUpdateCondition(index, { jqExpression: e.target.value })}
-                  size="small"
-                  sx={{ flex: 1 }}
-                  placeholder=".order.priority == 'high'"
-                />
-              )}
-
-              <IconButton onClick={() => handleDeleteCondition(index)} size="small">
-                <DeleteIcon />
-              </IconButton>
-            </Box>
-          </Paper>
-        ))}
-
-        <Button 
-          startIcon={<AddIcon />} 
-          onClick={handleAddCondition} 
-          variant="outlined"
-          data-testid="add-condition-button"
-        >
-          Add Condition
-        </Button>
+        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+          Matching Conditions
+        </Typography>
+        <TextField
+          label="Match Field"
+          value={localRoute.match_field || ''}
+          onChange={(e) => handleUpdate({ match_field: e.target.value })}
+          fullWidth
+          margin="normal"
+          placeholder="e.g., metadata.type, payload.action"
+          inputProps={{ 'data-testid': 'match-field-input' }}
+        />
+        <TextField
+          label="Match Value"
+          value={localRoute.match_value || ''}
+          onChange={(e) => handleUpdate({ match_value: e.target.value })}
+          fullWidth
+          margin="normal"
+          placeholder="Exact value to match"
+          inputProps={{ 'data-testid': 'match-value-input' }}
+        />
+        <TextField
+          label="Match Pattern (Regex)"
+          value={localRoute.match_pattern || ''}
+          onChange={(e) => handleUpdate({ match_pattern: e.target.value })}
+          fullWidth
+          margin="normal"
+          placeholder="e.g., ^notification\\."
+          inputProps={{ 'data-testid': 'match-pattern-input' }}
+        />
       </Box>
 
       <Divider sx={{ my: 3 }} />
 
+      {/* Destination */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
+        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
           Destination
         </Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <FormControl sx={{ minWidth: 120 }}>
-            <InputLabel>Type</InputLabel>
-            <Select
-              value={localRoute.destination.type}
-              onChange={(e) =>
-                handleUpdate({
-                  destination: {
-                    ...localRoute.destination,
-                    type: e.target.value as DestinationConfig['type'],
-                  },
-                })
-              }
-              label="Type"
-            >
-              <MenuItem value="endpoint">Endpoint</MenuItem>
-              <MenuItem value="queue">Queue</MenuItem>
-              <MenuItem value="webhook">Webhook</MenuItem>
-            </Select>
-          </FormControl>
+        <TextField
+          label="Endpoint"
+          value={localRoute.endpoint}
+          onChange={(e) => handleUpdate({ endpoint: e.target.value })}
+          fullWidth
+          margin="normal"
+          required
+          placeholder="e.g., user-service, http://api.example.com"
+          inputProps={{ 'data-testid': 'destination-endpoint-input' }}
+        />
+        <FormControl fullWidth margin="normal">
+          <InputLabel>HTTP Method</InputLabel>
+          <Select
+            value={localRoute.method || 'POST'}
+            onChange={(e) => handleUpdate({ method: e.target.value })}
+            label="HTTP Method"
+          >
+            <MenuItem value="GET">GET</MenuItem>
+            <MenuItem value="POST">POST</MenuItem>
+            <MenuItem value="PUT">PUT</MenuItem>
+            <MenuItem value="PATCH">PATCH</MenuItem>
+            <MenuItem value="DELETE">DELETE</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
+      <Divider sx={{ my: 3 }} />
+
+      {/* Transformation */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+          Transformation
+        </Typography>
+        <FormControl fullWidth margin="normal">
+          <InputLabel>Transform Type</InputLabel>
+          <Select
+            value={localRoute.transform_type || 'passthrough'}
+            onChange={(e) => handleUpdate({ transform_type: e.target.value as any })}
+            label="Transform Type"
+          >
+            <MenuItem value="passthrough">Passthrough</MenuItem>
+            <MenuItem value="jq">JQ</MenuItem>
+            <MenuItem value="template">Template</MenuItem>
+            <MenuItem value="jsonpath">JSONPath</MenuItem>
+          </Select>
+        </FormControl>
+        {localRoute.transform_type && localRoute.transform_type !== 'passthrough' && (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Transform Expression
+            </Typography>
+            <Box sx={{ border: 1, borderColor: 'divider', borderRadius: 1 }}>
+              <Editor
+                height="200px"
+                language="javascript"
+                value={localRoute.transform || ''}
+                onChange={(value) => handleUpdate({ transform: value || '' })}
+                options={{
+                  minimap: { enabled: false },
+                  fontSize: 14,
+                  lineNumbers: 'on',
+                  wordWrap: 'on',
+                }}
+              />
+            </Box>
+          </Box>
+        )}
+      </Box>
+
+      <Divider sx={{ my: 3 }} />
+
+      {/* Settings */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+          Settings
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 2 }}>
           <TextField
-            label="Target"
-            value={localRoute.destination.target}
-            onChange={(e) =>
-              handleUpdate({
-                destination: { ...localRoute.destination, target: e.target.value },
-              })
+            label="Timeout (seconds)"
+            type="number"
+            value={localRoute.timeout || ''}
+            onChange={(e) => handleUpdate({ timeout: parseInt(e.target.value) || undefined })}
+            sx={{ flex: 1 }}
+            placeholder="30"
+          />
+          <TextField
+            label="Max Retries"
+            type="number"
+            value={localRoute.max_retries || ''}
+            onChange={(e) => handleUpdate({ max_retries: parseInt(e.target.value) || undefined })}
+            sx={{ flex: 1 }}
+            placeholder="3"
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={localRoute.is_default || false}
+                onChange={(e) => handleUpdate({ is_default: e.target.checked })}
+              />
             }
-            fullWidth
-            inputProps={{ 'data-testid': 'destination-endpoint-input' }}
+            label="Default Route"
           />
         </Box>
       </Box>

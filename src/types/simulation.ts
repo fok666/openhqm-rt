@@ -18,7 +18,6 @@ export interface SimulationContext {
     matchedRoute?: string;
     transformedPayload?: any;
     destination?: string;
-    actions: ExecutedAction[];
     errors: SimulationError[];
   };
 
@@ -59,14 +58,14 @@ export interface TestCase {
   id: string;
   name: string;
   description: string;
-  routeId?: string;
+  routeName?: string; // Name of expected matching route
   input: {
     payload: any;
     headers: Record<string, string>;
     metadata: Record<string, any>;
   };
   expectedOutput?: {
-    routeId: string;
+    routeName: string; // Expected route name to match
     transformedPayload?: any;
     destination?: string;
   };

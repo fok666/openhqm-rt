@@ -4,9 +4,7 @@ import { jqService } from './jqEngine';
 export class RouteMatcher {
   async matchRoute(routes: Route[], context: SimulationContext): Promise<Route | null> {
     // Sort by priority (higher first)
-    const sortedRoutes = routes
-      .filter((r) => r.enabled)
-      .sort((a, b) => b.priority - a.priority);
+    const sortedRoutes = routes.filter((r) => r.enabled).sort((a, b) => b.priority - a.priority);
 
     for (const route of sortedRoutes) {
       if (await this.evaluateConditions(route, context)) {
@@ -66,19 +64,13 @@ export class RouteMatcher {
     }
   }
 
-  private evaluatePayloadCondition(
-    condition: RouteCondition,
-    context: SimulationContext
-  ): boolean {
+  private evaluatePayloadCondition(condition: RouteCondition, context: SimulationContext): boolean {
     if (!condition.field) return false;
     const value = this.getNestedValue(context.input.payload, condition.field);
     return this.compareValues(value, condition.operator, condition.value);
   }
 
-  private evaluateHeaderCondition(
-    condition: RouteCondition,
-    context: SimulationContext
-  ): boolean {
+  private evaluateHeaderCondition(condition: RouteCondition, context: SimulationContext): boolean {
     if (!condition.field) return false;
     const value = context.input.headers[condition.field];
     return this.compareValues(value, condition.operator, condition.value);

@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { v4 as uuidv4 } from 'uuid';
 import type { Route } from '../types';
 import { storageService } from '../services';
 
@@ -13,10 +12,10 @@ interface RouteStore {
   loadRoutes: () => void;
   setRoutes: (routes: Route[]) => void;
   selectRoute: (route: Route | null) => void;
-  addRoute: (route: Omit<Route, 'id'>) => void;
-  updateRoute: (id: string, updates: Partial<Route>) => void;
-  deleteRoute: (id: string) => void;
-  duplicateRoute: (id: string) => void;
+  addRoute: (route: Route) => void;
+  updateRoute: (name: string, updates: Partial<Route>) => void;
+  deleteRoute: (name: string) => void;
+  duplicateRoute: (name: string) => void;
   reorderRoutes: (startIndex: number, endIndex: number) => void;
   clearError: () => void;
 }
@@ -50,48 +49,42 @@ export const useRouteStore = create<RouteStore>((set, get) => ({
     set({ selectedRoute: route });
   },
 
-  addRoute: (routeData) => {
-    const newRoute: Route = {
-      ...routeData,
-      id: uuidv4(),
-    };
-
-    const routes = [...get().routes, newRoute];
+  addRoute: (route) => {
+    const routes = [...get().routes, route];
     get().setRoutes(routes);
-    set({ selectedRoute: newRoute });
+    set({ selectedRoute: route });
   },
 
-  updateRoute: (id, updates) => {
+  updateRoute: (name, updates) => {
     const routes = get().routes.map((route) =>
-      route.id === id ? { ...route, ...updates } : route
+      route.name === name ? { ...route, ...updates } : route
     );
     get().setRoutes(routes);
 
     // Update selected route if it's the one being updated
     const selectedRoute = get().selectedRoute;
-    if (selectedRoute?.id === id) {
+    if (selectedRoute?.name === name) {
       set({ selectedRoute: { ...selectedRoute, ...updates } });
     }
   },
 
-  deleteRoute: (id) => {
-    const routes = get().routes.filter((route) => route.id !== id);
+  deleteRoute: (name) => {
+    const routes = get().routes.filter((route) => route.name !== name);
     get().setRoutes(routes);
 
     // Clear selection if deleted route was selected
-    if (get().selectedRoute?.id === id) {
+    if (get().selectedRoute?.name === name) {
       set({ selectedRoute: null });
     }
   },
 
-  duplicateRoute: (id) => {
-    const route = get().routes.find((r) => r.id === id);
+  duplicateRoute: (name) => {
+    const route = get().routes.find((r) => r.name === name);
     if (!route) return;
 
     const newRoute: Route = {
       ...route,
-      id: uuidv4(),
-      name: `${route.name} (Copy)`,
+      name: `${route.name}-copy`,
     };
 
     const routes = [...get().routes, newRoute];

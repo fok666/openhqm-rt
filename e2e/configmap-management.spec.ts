@@ -1,5 +1,4 @@
 import { test, expect, RouteManagerHelpers } from './fixtures';
-import * as yaml from 'js-yaml';
 
 /**
  * E2E tests for ConfigMap Management functionality

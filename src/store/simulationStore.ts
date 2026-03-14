@@ -28,7 +28,6 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       input,
       trace: [],
       output: {
-        actions: [],
         errors: [],
       },
       metrics: {
@@ -53,7 +52,7 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
           ? `Matched route: ${matchedRoute.name}`
           : 'No matching route found',
         input: input.payload,
-        output: matchedRoute?.id,
+        output: matchedRoute?.name,
         duration: matchDuration,
         success: !!matchedRoute,
       });
@@ -61,14 +60,14 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
       simulation.metrics.matchingDuration = matchDuration;
 
       if (matchedRoute) {
-        simulation.output.matchedRoute = matchedRoute.id;
-        simulation.output.destination = matchedRoute.destination.target;
+        simulation.output.matchedRoute = matchedRoute.name;
+        simulation.output.destination = matchedRoute.endpoint;
 
         // Step 2: Apply transformation if configured
-        if (matchedRoute.transform?.enabled) {
+        if (matchedRoute.transform_type && matchedRoute.transform_type !== 'passthrough') {
           const transformStart = performance.now();
           const transformResult = await jqService.transform(
-            matchedRoute.transform.jqExpression,
+            matchedRoute.transform || '',
             input.payload
           );
           const transformDuration = performance.now() - transformStart;

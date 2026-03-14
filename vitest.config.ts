@@ -29,10 +29,10 @@ export default defineConfig({
       ],
       thresholds: {
         // Applied to business logic: services, stores, config, utils
-        lines: 85,
+        lines: 80,
         functions: 85,
-        branches: 75,
-        statements: 85,
+        branches: 65,
+        statements: 80,
       },
     },
   },

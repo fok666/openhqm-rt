@@ -46,7 +46,10 @@ export const Simulator: React.FC = () => {
   };
 
   return (
-    <Paper data-testid="simulator" sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 2 }}>
+    <Paper
+      data-testid="simulator"
+      sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 2 }}
+    >
       <Typography variant="h6" gutterBottom>
         Route Simulator
       </Typography>
@@ -56,7 +59,10 @@ export const Simulator: React.FC = () => {
           <Typography variant="subtitle2" gutterBottom>
             Payload
           </Typography>
-          <Box data-testid="simulation-payload-editor" sx={{ height: '200px', border: 1, borderColor: 'divider', borderRadius: 1 }}>
+          <Box
+            data-testid="simulation-payload-editor"
+            sx={{ height: '200px', border: 1, borderColor: 'divider', borderRadius: 1 }}
+          >
             <Editor
               height="100%"
               language="json"
@@ -107,7 +113,12 @@ export const Simulator: React.FC = () => {
           </Typography>
 
           {currentSimulation.output.matchedRoute ? (
-            <Alert data-testid="matched-route" severity="success" icon={<CheckIcon />} sx={{ mb: 2 }}>
+            <Alert
+              data-testid="matched-route"
+              severity="success"
+              icon={<CheckIcon />}
+              sx={{ mb: 2 }}
+            >
               Route matched: {currentSimulation.output.matchedRoute}
               <br />
               Destination: {currentSimulation.output.destination}

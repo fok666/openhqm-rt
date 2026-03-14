@@ -1,5 +1,5 @@
 import yaml from 'js-yaml';
-import type { Route } from '../types';
+import type { Route, RoutingConfig } from '../types';
 import { settings } from '../config/settings';
 
 export class StorageService {
@@ -29,12 +29,68 @@ export class StorageService {
   }
 
   exportToYAML(routes: Route[]): string {
-    const configMap = this.generateConfigMap(routes);
+    const routingConfig: RoutingConfig = {
+      version: '1.0',
+      routes: routes,
+      default_endpoint: 'default-service',
+      enable_fallback: true,
+    };
+
+    const configMap = {
+      apiVersion: 'v1',
+      kind: 'ConfigMap',
+      metadata: {
+        name: settings.export.defaultConfigMapName,
+        namespace: settings.export.defaultNamespace,
+        labels: {
+          app: 'openhqm',
+          component: 'router',
+          version: settings.app.version,
+        },
+        ...(settings.export.includeTimestamp && {
+          annotations: {
+            lastModified: new Date().toISOString(),
+          },
+        }),
+      },
+      data: {
+        'routing.yaml': yaml.dump(routingConfig),
+      },
+    };
+
     return yaml.dump(configMap);
   }
 
   exportToJSON(routes: Route[]): string {
-    const configMap = this.generateConfigMap(routes);
+    const routingConfig: RoutingConfig = {
+      version: '1.0',
+      routes: routes,
+      default_endpoint: 'default-service',
+      enable_fallback: true,
+    };
+
+    const configMap = {
+      apiVersion: 'v1',
+      kind: 'ConfigMap',
+      metadata: {
+        name: settings.export.defaultConfigMapName,
+        namespace: settings.export.defaultNamespace,
+        labels: {
+          app: 'openhqm',
+          component: 'router',
+          version: settings.app.version,
+        },
+        ...(settings.export.includeTimestamp && {
+          annotations: {
+            lastModified: new Date().toISOString(),
+          },
+        }),
+      },
+      data: {
+        'routing.yaml': yaml.dump(routingConfig),
+      },
+    };
+
     return JSON.stringify(configMap, null, 2);
   }
 
@@ -52,56 +108,37 @@ export class StorageService {
 
   importFromYAML(yamlContent: string): Route[] {
     try {
-      const configMap: any = yaml.load(yamlContent);
+      const parsed: any = yaml.load(yamlContent);
 
-      if (configMap.kind !== 'ConfigMap') {
-        throw new Error('Invalid ConfigMap format');
+      // Case 1: Direct routing configuration (routes array directly)
+      if (Array.isArray(parsed)) {
+        return parsed;
       }
 
-      const routesYaml = configMap.data?.['routes.yaml'];
-      if (!routesYaml) {
-        throw new Error('No routes.yaml found in ConfigMap');
+      // Case 2: Routing config object with routes array
+      if (parsed.routes && Array.isArray(parsed.routes)) {
+        return parsed.routes;
       }
 
-      const routesData: any = yaml.load(routesYaml);
-      return routesData.routes || [];
+      // Case 3: Full ConfigMap format
+      if (parsed.data) {
+        // Try 'routing.yaml' key first (openhqm format)
+        if (parsed.data['routing.yaml']) {
+          const routingConfig = yaml.load(parsed.data['routing.yaml']) as RoutingConfig;
+          return routingConfig.routes;
+        }
+        // Fallback to 'routes.yaml' key
+        if (parsed.data['routes.yaml']) {
+          const routingConfig = yaml.load(parsed.data['routes.yaml']) as RoutingConfig;
+          return routingConfig.routes;
+        }
+      }
+
+      throw new Error('Invalid YAML format: Expected routes array or valid ConfigMap');
     } catch (error) {
-      console.error('Failed to import routes:', error);
-      throw new Error(`Failed to import routes: ${error}`);
+      console.error('Import failed:', error);
+      throw error;
     }
-  }
-
-  private generateConfigMap(routes: Route[]): any {
-    const timestamp = settings.export.includeTimestamp
-      ? new Date().toISOString()
-      : undefined;
-
-    const routesData = {
-      version: '1.0',
-      routes: routes,
-    };
-
-    return {
-      apiVersion: 'v1',
-      kind: 'ConfigMap',
-      metadata: {
-        name: settings.export.defaultConfigMapName,
-        namespace: settings.export.defaultNamespace,
-        labels: {
-          app: 'openhqm',
-          component: 'router',
-          version: settings.app.version,
-        },
-        ...(timestamp && {
-          annotations: {
-            lastModified: timestamp,
-          },
-        }),
-      },
-      data: {
-        'routes.yaml': yaml.dump(routesData),
-      },
-    };
   }
 }
 

@@ -28,10 +28,10 @@ export class JQService {
       // Usage: jq.json(input, filter)
       console.log('JQ Transform - Input:', inputData);
       console.log('JQ Transform - Expression:', expression);
-      
+
       const result = this.jq.json(inputData, expression);
       console.log('JQ Transform - Result:', result);
-      
+
       return { success: true, output: result };
     } catch (error: any) {
       console.error('JQ Transform Error:', error);

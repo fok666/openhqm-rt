@@ -41,6 +41,13 @@ This directory contains comprehensive E2E tests for the OpenHQM Router Manager w
    - Troubleshooting flows
    - Production-ready configurations
 
+6. **OpenHQM Examples** (`openhqm-examples.spec.ts`) ⭐️
+   - Validates all OpenHQM example configurations
+   - Tests import/export compatibility
+   - Verifies JQ transformations from examples
+   - Ensures Router Manager handles real-world configs
+   - Maintains contract between openhqm and openhqm-rm
+
 ## 🚀 Running Tests
 
 ### Prerequisites
@@ -82,6 +89,24 @@ npx playwright test -g "should create a new route"
 npx playwright test --project=chromium
 npx playwright test --project=firefox
 npx playwright test --project=webkit
+```
+
+### Run OpenHQM Example Validation
+
+Test compatibility with OpenHQM examples:
+
+```bash
+# Run OpenHQM examples validation
+npx playwright test openhqm-examples
+
+# This validates:
+# - Import of all OpenHQM example configurations
+# - JQ transformations from routing-config.yaml
+# - ConfigMap format compatibility
+# - Route matching patterns
+# - Complete end-to-end workflows
+
+# These tests ensure Router Manager can handle real OpenHQM configs
 ```
 
 ### Run Mobile Tests

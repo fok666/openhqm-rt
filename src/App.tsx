@@ -49,7 +49,10 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box data-testid="app-container" sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <Box
+        data-testid="app-container"
+        sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}
+      >
         <AppBar position="static">
           <Toolbar>
             <Typography variant="h6" component="h1" sx={{ flexGrow: 1 }}>
