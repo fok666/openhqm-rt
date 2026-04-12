@@ -27,7 +27,7 @@
     "@emotion/styled": "^11.11.0",
     "@monaco-editor/react": "^4.6.0",
     "@mui/icons-material": "^7.3.9",
-    "@mui/material": "^7.3.7",
+    "@mui/material": "^9.0.0",
     "jq-web": "^0.6.2",
     "js-yaml": "^4.1.0",
     "react": "^19.2.4",
