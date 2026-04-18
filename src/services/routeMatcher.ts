@@ -27,12 +27,14 @@ export class RouteMatcher {
     let payloadString: string | undefined;
 
     for (const route of sortedRoutes) {
-      if (this.evaluateRoute(route, context, () => {
-        if (payloadString === undefined) {
-          payloadString = JSON.stringify(context.input.payload);
-        }
-        return payloadString;
-      })) {
+      if (
+        this.evaluateRoute(route, context, () => {
+          if (payloadString === undefined) {
+            payloadString = JSON.stringify(context.input.payload);
+          }
+          return payloadString;
+        })
+      ) {
         return route;
       }
     }
@@ -43,7 +45,7 @@ export class RouteMatcher {
   evaluateRoute(
     route: Route,
     context: SimulationContext,
-    getPayloadString?: () => string,
+    getPayloadString?: () => string
   ): boolean {
     // Default routes always match (lowest priority fallback)
     if (route.is_default) {
@@ -94,10 +96,9 @@ export class RouteMatcher {
   }
 
   private getNestedValue(obj: Record<string, unknown>, path: string): unknown {
-    return path.split('.').reduce<unknown>(
-      (current, key) => (current as Record<string, unknown>)?.[key],
-      obj,
-    );
+    return path
+      .split('.')
+      .reduce<unknown>((current, key) => (current as Record<string, unknown>)?.[key], obj);
   }
 }
 

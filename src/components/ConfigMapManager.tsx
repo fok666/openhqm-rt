@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
-import { 
-  Box, 
-  Paper, 
-  Typography, 
-  Button, 
-  Alert, 
-  Tabs, 
+import {
+  Box,
+  Paper,
+  Typography,
+  Button,
+  Alert,
+  Tabs,
   Tab,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField
+  TextField,
 } from '@mui/material';
-import { Download as DownloadIcon, Upload as UploadIcon, ContentPaste as PasteIcon } from '@mui/icons-material';
+import {
+  Download as DownloadIcon,
+  Upload as UploadIcon,
+  ContentPaste as PasteIcon,
+} from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import { useRouteStore } from '../store';
 import { storageService } from '../services';
@@ -128,11 +132,7 @@ export const ConfigMapManager: React.FC = () => {
       )}
 
       <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-        <Button
-          variant="outlined"
-          component="label"
-          startIcon={<UploadIcon />}
-        >
+        <Button variant="outlined" component="label" startIcon={<UploadIcon />}>
           Import from File
           <input
             type="file"
@@ -209,8 +209,8 @@ export const ConfigMapManager: React.FC = () => {
       )}
 
       {/* Import Dialog */}
-      <Dialog 
-        open={importDialogOpen} 
+      <Dialog
+        open={importDialogOpen}
         onClose={handleCloseImportDialog}
         maxWidth="md"
         fullWidth
@@ -234,7 +234,7 @@ export const ConfigMapManager: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseImportDialog}>Cancel</Button>
-          <Button 
+          <Button
             onClick={handleImportFromText}
             variant="contained"
             disabled={!importContent.trim()}
