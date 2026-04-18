@@ -81,7 +81,7 @@ export const RouteEditor: React.FC = () => {
 
       {/* Basic Information */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+        <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
           Basic Information
         </Typography>
         <TextField
@@ -91,7 +91,7 @@ export const RouteEditor: React.FC = () => {
           fullWidth
           margin="normal"
           required
-          inputProps={{ 'data-testid': 'route-name-input' }}
+          slotProps={{ htmlInput: { 'data-testid': 'route-name-input' } }}
         />
         <TextField
           label="Description"
@@ -101,16 +101,19 @@ export const RouteEditor: React.FC = () => {
           margin="normal"
           multiline
           rows={2}
-          inputProps={{ 'data-testid': 'route-description-input' }}
+          slotProps={{ htmlInput: { 'data-testid': 'route-description-input' } }}
         />
         <Box sx={{ display: 'flex', gap: 2, mt: 2, alignItems: 'center' }}>
           <TextField
             label="Priority"
             type="number"
-            value={localRoute.priority || 100}
-            onChange={(e) => handleUpdate({ priority: parseInt(e.target.value) || 100 })}
+            value={localRoute.priority ?? 100}
+            onChange={(e) => {
+              const val = parseInt(e.target.value);
+              handleUpdate({ priority: isNaN(val) ? 100 : val });
+            }}
             sx={{ flex: 1 }}
-            inputProps={{ 'data-testid': 'route-priority-input' }}
+            slotProps={{ htmlInput: { 'data-testid': 'route-priority-input' } }}
           />
           <FormControlLabel
             control={
@@ -137,7 +140,7 @@ export const RouteEditor: React.FC = () => {
 
       {/* Matching Conditions */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+        <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
           Matching Conditions
         </Typography>
         <TextField
@@ -147,7 +150,7 @@ export const RouteEditor: React.FC = () => {
           fullWidth
           margin="normal"
           placeholder="e.g., metadata.type, payload.action"
-          inputProps={{ 'data-testid': 'match-field-input' }}
+          slotProps={{ htmlInput: { 'data-testid': 'match-field-input' } }}
         />
         <TextField
           label="Match Value"
@@ -156,7 +159,7 @@ export const RouteEditor: React.FC = () => {
           fullWidth
           margin="normal"
           placeholder="Exact value to match"
-          inputProps={{ 'data-testid': 'match-value-input' }}
+          slotProps={{ htmlInput: { 'data-testid': 'match-value-input' } }}
         />
         <TextField
           label="Match Pattern (Regex)"
@@ -165,7 +168,7 @@ export const RouteEditor: React.FC = () => {
           fullWidth
           margin="normal"
           placeholder="e.g., ^notification\\."
-          inputProps={{ 'data-testid': 'match-pattern-input' }}
+          slotProps={{ htmlInput: { 'data-testid': 'match-pattern-input' } }}
         />
       </Box>
 
@@ -173,7 +176,7 @@ export const RouteEditor: React.FC = () => {
 
       {/* Destination */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+        <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
           Destination
         </Typography>
         <TextField
@@ -184,7 +187,7 @@ export const RouteEditor: React.FC = () => {
           margin="normal"
           required
           placeholder="e.g., user-service, http://api.example.com"
-          inputProps={{ 'data-testid': 'destination-endpoint-input' }}
+          slotProps={{ htmlInput: { 'data-testid': 'destination-endpoint-input' } }}
         />
         <FormControl fullWidth margin="normal">
           <InputLabel>HTTP Method</InputLabel>
@@ -206,7 +209,7 @@ export const RouteEditor: React.FC = () => {
 
       {/* Transformation */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+        <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
           Transformation
         </Typography>
         <FormControl fullWidth margin="normal">
@@ -249,7 +252,7 @@ export const RouteEditor: React.FC = () => {
 
       {/* Settings */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+        <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
           Settings
         </Typography>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 2 }}>

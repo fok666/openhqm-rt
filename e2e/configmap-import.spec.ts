@@ -169,7 +169,6 @@ test.describe('ConfigMap Import Examples', () => {
     const configMapPath = path.join(__dirname, CONFIGMAPS_PATH, 'starter-routes.yaml');
     const configMapContent = fs.readFileSync(configMapPath, 'utf-8');
     const configMap = yaml.load(configMapContent) as any;
-    const routingConfig = yaml.load(configMap.data['routing.yaml']) as any;
 
     // Import ConfigMap
     await page.click('[data-testid="import-button"]');
@@ -320,7 +319,7 @@ test.describe('ConfigMap Import Examples', () => {
       passthrough: 'webhook-relay'
     };
 
-    for (const [transformType, routeName] of Object.entries(routesByType)) {
+    for (const [, routeName] of Object.entries(routesByType)) {
       await expect(page.locator(`[data-testid="route-item-${routeName}"]`)).toBeVisible();
     }
   });
@@ -384,10 +383,7 @@ test.describe('ConfigMap Import Examples', () => {
     await expect(page.locator('[data-testid="import-success-message"]')).toBeVisible({ timeout: 10000 });
 
     // Verify all service routes
-    const services = ['users', 'orders', 'products', 'inventory', 'shipping'];
-    for (const service of services) {
-      // At least one route for each service should exist
-      await expect(page.locator('[data-testid^="route-item-"]')).toHaveCount(6);
-    }
+    // Verify all routes were imported
+    await expect(page.locator('[data-testid^="route-item-"]')).toHaveCount(6);
   });
 });

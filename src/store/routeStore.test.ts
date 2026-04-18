@@ -4,17 +4,11 @@ import type { Route } from '../types';
 
 describe('RouteStore', () => {
   const mockRoute: Route = {
-    id: 'route-001',
     name: 'Test Route',
     enabled: true,
     priority: 100,
-    conditions: [],
-    conditionOperator: 'AND',
-    actions: [],
-    destination: {
-      type: 'endpoint',
-      target: 'test-endpoint',
-    },
+    endpoint: 'http://test-endpoint.com',
+    method: 'POST',
   };
 
   beforeEach(() => {
@@ -39,7 +33,7 @@ describe('RouteStore', () => {
 
       const routes = useRouteStore.getState().routes;
       expect(routes).toHaveLength(1);
-      expect(routes[0].id).toBe('route-001');
+      expect(routes[0].name).toBe('Test Route');
     });
 
     it('should load empty array when no routes exist', () => {
@@ -81,23 +75,16 @@ describe('RouteStore', () => {
   });
 
   describe('addRoute', () => {
-    it('should add new route with generated ID', () => {
-      const newRoute = { ...mockRoute };
-      delete (newRoute as any).id;
-
-      useRouteStore.getState().addRoute(newRoute as any);
+    it('should add new route', () => {
+      useRouteStore.getState().addRoute(mockRoute);
 
       const routes = useRouteStore.getState().routes;
       expect(routes).toHaveLength(1);
-      expect(routes[0].id).toBeDefined();
       expect(routes[0].name).toBe('Test Route');
     });
 
     it('should set new route as selected', () => {
-      const newRoute = { ...mockRoute };
-      delete (newRoute as any).id;
-
-      useRouteStore.getState().addRoute(newRoute as any);
+      useRouteStore.getState().addRoute(mockRoute);
 
       const selected = useRouteStore.getState().selectedRoute;
       expect(selected).toBeDefined();
@@ -109,27 +96,27 @@ describe('RouteStore', () => {
     it('should update existing route', () => {
       useRouteStore.getState().setRoutes([mockRoute]);
 
-      useRouteStore.getState().updateRoute('route-001', { name: 'Updated Route' });
+      useRouteStore.getState().updateRoute('Test Route', { description: 'Updated' });
 
       const routes = useRouteStore.getState().routes;
-      expect(routes[0].name).toBe('Updated Route');
+      expect(routes[0].description).toBe('Updated');
     });
 
     it('should update selected route if it matches', () => {
       useRouteStore.getState().setRoutes([mockRoute]);
       useRouteStore.getState().selectRoute(mockRoute);
 
-      useRouteStore.getState().updateRoute('route-001', { name: 'Updated Route' });
+      useRouteStore.getState().updateRoute('Test Route', { description: 'Updated' });
 
       const selected = useRouteStore.getState().selectedRoute;
-      expect(selected?.name).toBe('Updated Route');
+      expect(selected?.description).toBe('Updated');
     });
 
     it('should not affect other routes', () => {
-      const route2 = { ...mockRoute, id: 'route-002', name: 'Route 2' };
+      const route2: Route = { ...mockRoute, name: 'Route 2' };
       useRouteStore.getState().setRoutes([mockRoute, route2]);
 
-      useRouteStore.getState().updateRoute('route-001', { name: 'Updated Route' });
+      useRouteStore.getState().updateRoute('Test Route', { description: 'Updated' });
 
       const routes = useRouteStore.getState().routes;
       expect(routes[1].name).toBe('Route 2');
@@ -137,10 +124,10 @@ describe('RouteStore', () => {
   });
 
   describe('deleteRoute', () => {
-    it('should delete route by ID', () => {
+    it('should delete route by name', () => {
       useRouteStore.getState().setRoutes([mockRoute]);
 
-      useRouteStore.getState().deleteRoute('route-001');
+      useRouteStore.getState().deleteRoute('Test Route');
 
       const routes = useRouteStore.getState().routes;
       expect(routes).toHaveLength(0);
@@ -150,7 +137,7 @@ describe('RouteStore', () => {
       useRouteStore.getState().setRoutes([mockRoute]);
       useRouteStore.getState().selectRoute(mockRoute);
 
-      useRouteStore.getState().deleteRoute('route-001');
+      useRouteStore.getState().deleteRoute('Test Route');
 
       const selected = useRouteStore.getState().selectedRoute;
       expect(selected).toBeNull();
@@ -161,28 +148,28 @@ describe('RouteStore', () => {
     it('should create copy of route', () => {
       useRouteStore.getState().setRoutes([mockRoute]);
 
-      useRouteStore.getState().duplicateRoute('route-001');
+      useRouteStore.getState().duplicateRoute('Test Route');
 
       const routes = useRouteStore.getState().routes;
       expect(routes).toHaveLength(2);
-      expect(routes[1].name).toBe('Test Route (Copy)');
+      expect(routes[1].name).toBe('Test Route-copy');
     });
 
-    it('should generate new ID for duplicated route', () => {
+    it('should generate different name for duplicated route', () => {
       useRouteStore.getState().setRoutes([mockRoute]);
 
-      useRouteStore.getState().duplicateRoute('route-001');
+      useRouteStore.getState().duplicateRoute('Test Route');
 
       const routes = useRouteStore.getState().routes;
-      expect(routes[0].id).not.toBe(routes[1].id);
+      expect(routes[0].name).not.toBe(routes[1].name);
     });
   });
 
   describe('reorderRoutes', () => {
     it('should reorder routes', () => {
-      const route1 = { ...mockRoute, id: 'route-001', name: 'Route 1' };
-      const route2 = { ...mockRoute, id: 'route-002', name: 'Route 2' };
-      const route3 = { ...mockRoute, id: 'route-003', name: 'Route 3' };
+      const route1: Route = { ...mockRoute, name: 'Route 1' };
+      const route2: Route = { ...mockRoute, name: 'Route 2' };
+      const route3: Route = { ...mockRoute, name: 'Route 3' };
       useRouteStore.getState().setRoutes([route1, route2, route3]);
 
       useRouteStore.getState().reorderRoutes(0, 2);

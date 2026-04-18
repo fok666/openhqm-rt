@@ -1,13 +1,40 @@
-import type { Route, RouteCondition, SimulationContext } from '../types';
-import { jqService } from './jqEngine';
+import type { Route, SimulationContext } from '../types';
 
 export class RouteMatcher {
+  private regexCache = new Map<string, RegExp | null>();
+
+  private getRegex(pattern: string): RegExp | null {
+    if (this.regexCache.has(pattern)) {
+      return this.regexCache.get(pattern)!;
+    }
+    try {
+      const regex = new RegExp(pattern);
+      this.regexCache.set(pattern, regex);
+      return regex;
+    } catch {
+      this.regexCache.set(pattern, null);
+      return null;
+    }
+  }
+
   async matchRoute(routes: Route[], context: SimulationContext): Promise<Route | null> {
-    // Sort by priority (higher first)
-    const sortedRoutes = routes.filter((r) => r.enabled).sort((a, b) => b.priority - a.priority);
+    // Sort by priority (higher first), defaulting to 100
+    const sortedRoutes = routes
+      .filter((r) => r.enabled !== false)
+      .sort((a, b) => (b.priority ?? 100) - (a.priority ?? 100));
+
+    // Pre-stringify payload once for routes that match against full payload
+    let payloadString: string | undefined;
 
     for (const route of sortedRoutes) {
-      if (await this.evaluateConditions(route, context)) {
+      if (
+        this.evaluateRoute(route, context, () => {
+          if (payloadString === undefined) {
+            payloadString = JSON.stringify(context.input.payload);
+          }
+          return payloadString;
+        })
+      ) {
         return route;
       }
     }
@@ -15,97 +42,63 @@ export class RouteMatcher {
     return null;
   }
 
-  async evaluateConditions(route: Route, context: SimulationContext): Promise<boolean> {
-    if (route.conditions.length === 0) {
-      return true; // No conditions means always match
-    }
-
-    const results = await Promise.all(
-      route.conditions.map((c) => this.evaluateCondition(c, context))
-    );
-
-    if (route.conditionOperator === 'AND') {
-      return results.every((r) => r);
-    } else {
-      return results.some((r) => r);
-    }
-  }
-
-  private async evaluateCondition(
-    condition: RouteCondition,
-    context: SimulationContext
-  ): Promise<boolean> {
-    switch (condition.type) {
-      case 'jq':
-        return this.evaluateJQCondition(condition, context);
-      case 'payload':
-        return this.evaluatePayloadCondition(condition, context);
-      case 'header':
-        return this.evaluateHeaderCondition(condition, context);
-      case 'metadata':
-        return this.evaluateMetadataCondition(condition, context);
-      default:
-        return false;
-    }
-  }
-
-  private async evaluateJQCondition(
-    condition: RouteCondition,
-    context: SimulationContext
-  ): Promise<boolean> {
-    if (!condition.jqExpression) return false;
-
-    try {
-      const result = await jqService.transform(condition.jqExpression, context.input.payload);
-      return result.success && Boolean(result.output);
-    } catch (error) {
-      console.error('JQ condition evaluation error:', error);
-      return false;
-    }
-  }
-
-  private evaluatePayloadCondition(condition: RouteCondition, context: SimulationContext): boolean {
-    if (!condition.field) return false;
-    const value = this.getNestedValue(context.input.payload, condition.field);
-    return this.compareValues(value, condition.operator, condition.value);
-  }
-
-  private evaluateHeaderCondition(condition: RouteCondition, context: SimulationContext): boolean {
-    if (!condition.field) return false;
-    const value = context.input.headers[condition.field];
-    return this.compareValues(value, condition.operator, condition.value);
-  }
-
-  private evaluateMetadataCondition(
-    condition: RouteCondition,
-    context: SimulationContext
+  evaluateRoute(
+    route: Route,
+    context: SimulationContext,
+    getPayloadString?: () => string
   ): boolean {
-    if (!condition.field) return false;
-    const value = context.input.metadata[condition.field];
-    return this.compareValues(value, condition.operator, condition.value);
-  }
+    // Default routes always match (lowest priority fallback)
+    if (route.is_default) {
+      return true;
+    }
 
-  private getNestedValue(obj: any, path: string): any {
-    return path.split('.').reduce((current, key) => current?.[key], obj);
-  }
+    // No matching criteria means always match
+    if (!route.match_field && !route.match_value && !route.match_pattern) {
+      return true;
+    }
 
-  private compareValues(actual: any, operator: string, expected: any): boolean {
-    switch (operator) {
-      case 'equals':
-        return actual === expected;
-      case 'contains':
-        return String(actual).includes(String(expected));
-      case 'regex':
-        try {
-          return new RegExp(expected).test(String(actual));
-        } catch {
+    // Get the value at match_field from the payload
+    if (route.match_field) {
+      const fieldValue = this.getNestedValue(context.input.payload, route.match_field);
+
+      // If neither match_value nor match_pattern is set, check field exists
+      if (route.match_value === undefined && !route.match_pattern) {
+        return fieldValue !== undefined && fieldValue !== null;
+      }
+
+      // Check exact match
+      if (route.match_value !== undefined) {
+        if (String(fieldValue) !== String(route.match_value)) {
           return false;
         }
-      case 'exists':
-        return actual !== undefined && actual !== null;
-      default:
-        return false;
+      }
+
+      // Check pattern match
+      if (route.match_pattern) {
+        const regex = this.getRegex(route.match_pattern);
+        if (!regex || !regex.test(String(fieldValue ?? ''))) {
+          return false;
+        }
+      }
+
+      return true;
     }
+
+    // match_pattern without match_field: match against JSON string of payload
+    if (route.match_pattern) {
+      const regex = this.getRegex(route.match_pattern);
+      if (!regex) return false;
+      const str = getPayloadString ? getPayloadString() : JSON.stringify(context.input.payload);
+      return regex.test(str);
+    }
+
+    return false;
+  }
+
+  private getNestedValue(obj: Record<string, unknown>, path: string): unknown {
+    return path
+      .split('.')
+      .reduce<unknown>((current, key) => (current as Record<string, unknown>)?.[key], obj);
   }
 }
 

@@ -50,7 +50,7 @@ describe('SimulationStore', () => {
       timestamp: new Date().toISOString(),
       input: { payload: { test: 'data' }, headers: {}, metadata: {} },
       trace: [],
-      output: { actions: [], errors: [] },
+      output: { errors: [] },
       metrics: { totalDuration: 0, matchingDuration: 0, transformDuration: 0 },
     };
 

@@ -5,25 +5,14 @@ import type { Route } from '../types';
 describe('StorageService', () => {
   let storageService: StorageService;
   const mockRoute: Route = {
-    id: 'route-001',
     name: 'Test Route',
     description: 'Test description',
     enabled: true,
     priority: 100,
-    conditions: [
-      {
-        type: 'payload',
-        field: 'order.priority',
-        operator: 'equals',
-        value: 'high',
-      },
-    ],
-    conditionOperator: 'AND',
-    actions: [],
-    destination: {
-      type: 'endpoint',
-      target: 'test-endpoint',
-    },
+    match_field: 'order.priority',
+    match_value: 'high',
+    endpoint: 'http://test-endpoint.com',
+    method: 'POST',
   };
 
   beforeEach(() => {
@@ -48,7 +37,7 @@ describe('StorageService', () => {
 
     it('should overwrite existing routes', () => {
       const routes1 = [mockRoute];
-      const routes2 = [{ ...mockRoute, id: 'route-002', name: 'New Route' }];
+      const routes2 = [{ ...mockRoute, name: 'New Route' }];
 
       storageService.saveRoutes(routes1);
       storageService.saveRoutes(routes2);
@@ -112,7 +101,7 @@ describe('StorageService', () => {
 
       const yaml = storageService.exportToYAML(routes);
 
-      expect(yaml).toContain('route-001');
+      expect(yaml).toContain('Test Route');
       expect(yaml).toContain('priority: 100');
       expect(yaml).toContain('enabled: true');
     });
@@ -135,7 +124,6 @@ describe('StorageService', () => {
 
       const json = storageService.exportToJSON(routes);
 
-      expect(json).toContain('route-001');
       expect(json).toContain('Test Route');
     });
   });
@@ -152,22 +140,15 @@ data:
   routes.yaml: |
     version: "1.0"
     routes:
-      - id: route-001
-        name: Imported Route
+      - name: Imported Route
         enabled: true
         priority: 100
-        conditions: []
-        conditionOperator: AND
-        actions: []
-        destination:
-          type: endpoint
-          target: test
+        endpoint: http://test.com
 `;
 
       const routes = storageService.importFromYAML(yamlContent);
 
       expect(routes).toHaveLength(1);
-      expect(routes[0].id).toBe('route-001');
       expect(routes[0].name).toBe('Imported Route');
     });
 
