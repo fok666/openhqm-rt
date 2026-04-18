@@ -10,17 +10,10 @@ describe('RouteMatcher', () => {
   });
 
   const createMockRoute = (overrides?: Partial<Route>): Route => ({
-    id: 'route-001',
     name: 'Test Route',
     enabled: true,
     priority: 100,
-    conditions: [],
-    conditionOperator: 'AND',
-    actions: [],
-    destination: {
-      type: 'endpoint',
-      target: 'test-endpoint',
-    },
+    endpoint: 'http://test-endpoint.com',
     ...overrides,
   });
 
@@ -34,7 +27,6 @@ describe('RouteMatcher', () => {
     },
     trace: [],
     output: {
-      actions: [],
       errors: [],
     },
     metrics: {
@@ -52,20 +44,14 @@ describe('RouteMatcher', () => {
       const matched = await routeMatcher.matchRoute(routes, context);
 
       expect(matched).toBeDefined();
-      expect(matched?.id).toBe('route-001');
+      expect(matched?.name).toBe('Test Route');
     });
 
     it('should return null when no routes match', async () => {
       const routes = [
         createMockRoute({
-          conditions: [
-            {
-              type: 'payload',
-              field: 'order.priority',
-              operator: 'equals',
-              value: 'low',
-            },
-          ],
+          match_field: 'order.priority',
+          match_value: 'low',
         }),
       ];
       const context = createMockContext({ order: { priority: 'high' } });
@@ -77,239 +63,174 @@ describe('RouteMatcher', () => {
 
     it('should skip disabled routes', async () => {
       const routes = [
-        createMockRoute({ enabled: false, priority: 200 }),
-        createMockRoute({ enabled: true, priority: 100 }),
+        createMockRoute({ name: 'Disabled', enabled: false, priority: 200 }),
+        createMockRoute({ name: 'Enabled', enabled: true, priority: 100 }),
       ];
       const context = createMockContext();
 
       const matched = await routeMatcher.matchRoute(routes, context);
 
       expect(matched).toBeDefined();
-      expect(matched?.priority).toBe(100);
+      expect(matched?.name).toBe('Enabled');
     });
 
     it('should match route with highest priority', async () => {
       const routes = [
-        createMockRoute({ id: 'low-priority', priority: 50 }),
-        createMockRoute({ id: 'high-priority', priority: 200 }),
-        createMockRoute({ id: 'medium-priority', priority: 100 }),
+        createMockRoute({ name: 'Low Priority', priority: 50 }),
+        createMockRoute({ name: 'High Priority', priority: 200 }),
+        createMockRoute({ name: 'Medium Priority', priority: 100 }),
       ];
       const context = createMockContext();
 
       const matched = await routeMatcher.matchRoute(routes, context);
 
-      expect(matched?.id).toBe('high-priority');
+      expect(matched?.name).toBe('High Priority');
+    });
+
+    it('should default priority to 100', async () => {
+      const routes = [
+        createMockRoute({ name: 'No Priority', priority: undefined }),
+        createMockRoute({ name: 'Priority 50', priority: 50 }),
+      ];
+      const context = createMockContext();
+
+      const matched = await routeMatcher.matchRoute(routes, context);
+
+      expect(matched?.name).toBe('No Priority');
     });
   });
 
-  describe('evaluateConditions', () => {
-    it('should evaluate AND conditions correctly', async () => {
+  describe('evaluateRoute', () => {
+    it('should match on exact field value', () => {
       const route = createMockRoute({
-        conditions: [
-          {
-            type: 'payload',
-            field: 'order.priority',
-            operator: 'equals',
-            value: 'high',
-          },
-          {
-            type: 'payload',
-            field: 'order.id',
-            operator: 'exists',
-          },
-        ],
-        conditionOperator: 'AND',
+        match_field: 'order.priority',
+        match_value: 'high',
       });
-      const context = createMockContext({ order: { id: 123, priority: 'high' } });
+      const context = createMockContext({ order: { priority: 'high' } });
 
-      const result = await routeMatcher.evaluateConditions(route, context);
+      const result = routeMatcher.evaluateRoute(route, context);
 
       expect(result).toBe(true);
     });
 
-    it('should evaluate OR conditions correctly', async () => {
+    it('should not match when field value differs', () => {
       const route = createMockRoute({
-        conditions: [
-          {
-            type: 'payload',
-            field: 'order.priority',
-            operator: 'equals',
-            value: 'low',
-          },
-          {
-            type: 'payload',
-            field: 'order.priority',
-            operator: 'equals',
-            value: 'high',
-          },
-        ],
-        conditionOperator: 'OR',
+        match_field: 'order.priority',
+        match_value: 'low',
       });
       const context = createMockContext({ order: { priority: 'high' } });
 
-      const result = await routeMatcher.evaluateConditions(route, context);
-
-      expect(result).toBe(true);
-    });
-
-    it('should return false when AND conditions not all met', async () => {
-      const route = createMockRoute({
-        conditions: [
-          {
-            type: 'payload',
-            field: 'order.priority',
-            operator: 'equals',
-            value: 'high',
-          },
-          {
-            type: 'payload',
-            field: 'order.priority',
-            operator: 'equals',
-            value: 'low',
-          },
-        ],
-        conditionOperator: 'AND',
-      });
-      const context = createMockContext({ order: { priority: 'high' } });
-
-      const result = await routeMatcher.evaluateConditions(route, context);
+      const result = routeMatcher.evaluateRoute(route, context);
 
       expect(result).toBe(false);
     });
-  });
 
-  describe('payload conditions', () => {
-    it('should evaluate equals operator', async () => {
+    it('should match on regex pattern', () => {
       const route = createMockRoute({
-        conditions: [
-          {
-            type: 'payload',
-            field: 'order.priority',
-            operator: 'equals',
-            value: 'high',
-          },
-        ],
-      });
-      const context = createMockContext({ order: { priority: 'high' } });
-
-      const matched = await routeMatcher.matchRoute([route], context);
-
-      expect(matched).toBeDefined();
-    });
-
-    it('should evaluate contains operator', async () => {
-      const route = createMockRoute({
-        conditions: [
-          {
-            type: 'payload',
-            field: 'order.description',
-            operator: 'contains',
-            value: 'urgent',
-          },
-        ],
-      });
-      const context = createMockContext({ order: { description: 'This is urgent' } });
-
-      const matched = await routeMatcher.matchRoute([route], context);
-
-      expect(matched).toBeDefined();
-    });
-
-    it('should evaluate exists operator', async () => {
-      const route = createMockRoute({
-        conditions: [
-          {
-            type: 'payload',
-            field: 'order.id',
-            operator: 'exists',
-          },
-        ],
-      });
-      const context = createMockContext({ order: { id: 123 } });
-
-      const matched = await routeMatcher.matchRoute([route], context);
-
-      expect(matched).toBeDefined();
-    });
-
-    it('should evaluate regex operator', async () => {
-      const route = createMockRoute({
-        conditions: [
-          {
-            type: 'payload',
-            field: 'order.email',
-            operator: 'regex',
-            value: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$',
-          },
-        ],
+        match_field: 'order.email',
+        match_pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$',
       });
       const context = createMockContext({ order: { email: 'test@example.com' } });
 
-      const matched = await routeMatcher.matchRoute([route], context);
+      const result = routeMatcher.evaluateRoute(route, context);
 
-      expect(matched).toBeDefined();
+      expect(result).toBe(true);
     });
 
-    it('should handle nested field access', async () => {
+    it('should not match when regex pattern fails', () => {
       const route = createMockRoute({
-        conditions: [
-          {
-            type: 'payload',
-            field: 'order.customer.type',
-            operator: 'equals',
-            value: 'premium',
-          },
-        ],
+        match_field: 'order.email',
+        match_pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$',
+      });
+      const context = createMockContext({ order: { email: 'not-an-email' } });
+
+      const result = routeMatcher.evaluateRoute(route, context);
+
+      expect(result).toBe(false);
+    });
+
+    it('should match both value and pattern when both specified', () => {
+      const route = createMockRoute({
+        match_field: 'order.type',
+        match_value: 'urgent',
+        match_pattern: '^urgent$',
+      });
+      const context = createMockContext({ order: { type: 'urgent' } });
+
+      const result = routeMatcher.evaluateRoute(route, context);
+
+      expect(result).toBe(true);
+    });
+
+    it('should handle nested field access', () => {
+      const route = createMockRoute({
+        match_field: 'order.customer.type',
+        match_value: 'premium',
       });
       const context = createMockContext({
         order: { customer: { type: 'premium' } },
       });
 
-      const matched = await routeMatcher.matchRoute([route], context);
+      const result = routeMatcher.evaluateRoute(route, context);
 
-      expect(matched).toBeDefined();
+      expect(result).toBe(true);
     });
-  });
 
-  describe('header conditions', () => {
-    it('should evaluate header conditions', async () => {
+    it('should handle missing nested fields gracefully', () => {
       const route = createMockRoute({
-        conditions: [
-          {
-            type: 'header',
-            field: 'X-Priority',
-            operator: 'equals',
-            value: 'high',
-          },
-        ],
+        match_field: 'order.customer.type',
+        match_value: 'premium',
+      });
+      const context = createMockContext({ order: {} });
+
+      const result = routeMatcher.evaluateRoute(route, context);
+
+      expect(result).toBe(false);
+    });
+
+    it('should always match default routes', () => {
+      const route = createMockRoute({
+        is_default: true,
+        match_field: 'nonexistent',
+        match_value: 'never',
       });
       const context = createMockContext();
-      context.input.headers['X-Priority'] = 'high';
 
-      const matched = await routeMatcher.matchRoute([route], context);
+      const result = routeMatcher.evaluateRoute(route, context);
 
-      expect(matched).toBeDefined();
+      expect(result).toBe(true);
     });
-  });
 
-  describe('metadata conditions', () => {
-    it('should evaluate metadata conditions', async () => {
-      const route = createMockRoute({
-        conditions: [
-          {
-            type: 'metadata',
-            field: 'source',
-            operator: 'equals',
-            value: 'web',
-          },
-        ],
-      });
+    it('should match routes with no matching criteria', () => {
+      const route = createMockRoute();
       const context = createMockContext();
-      context.input.metadata.source = 'web';
 
-      const matched = await routeMatcher.matchRoute([route], context);
+      const result = routeMatcher.evaluateRoute(route, context);
 
-      expect(matched).toBeDefined();
+      expect(result).toBe(true);
+    });
+
+    it('should handle invalid regex gracefully', () => {
+      const route = createMockRoute({
+        match_field: 'order.type',
+        match_pattern: '[invalid',
+      });
+      const context = createMockContext({ order: { type: 'test' } });
+
+      const result = routeMatcher.evaluateRoute(route, context);
+
+      expect(result).toBe(false);
+    });
+
+    it('should match pattern against full payload when no match_field', () => {
+      const route = createMockRoute({
+        match_pattern: 'premium',
+      });
+      const context = createMockContext({ customer: { type: 'premium' } });
+
+      const result = routeMatcher.evaluateRoute(route, context);
+
+      expect(result).toBe(true);
     });
   });
 });

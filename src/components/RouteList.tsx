@@ -85,7 +85,7 @@ export const RouteList: React.FC = () => {
                     onClick={(e) => handleToggleEnabled(route, e)}
                     size="small"
                     data-testid="toggle-enabled"
-                    inputProps={{ 'aria-label': 'Toggle route enabled' }}
+                    slotProps={{ input: { 'aria-label': 'Toggle route enabled' } }}
                   />
                   <IconButton
                     edge="end"

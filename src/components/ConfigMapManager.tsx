@@ -228,7 +228,7 @@ export const ConfigMapManager: React.FC = () => {
             value={importContent}
             onChange={(e) => setImportContent(e.target.value)}
             placeholder="Paste ConfigMap YAML or routing configuration here..."
-            inputProps={{ 'data-testid': 'import-textarea' }}
+            slotProps={{ htmlInput: { 'data-testid': 'import-textarea' } }}
             sx={{ fontFamily: 'monospace' }}
           />
         </DialogContent>

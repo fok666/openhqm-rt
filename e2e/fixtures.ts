@@ -199,6 +199,7 @@ export const test = base.extend<{
   // Helper functions fixture
   helpers: async ({ page }, use) => {
     const helpers = new RouteManagerHelpers(page);
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     await use(helpers);
   },
 
