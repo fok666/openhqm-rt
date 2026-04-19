@@ -57,6 +57,14 @@ export interface Route {
   // Settings
   timeout?: number;
   max_retries?: number;
+
+  // Actions
+  actions?: RouteAction[];
+}
+
+export interface RouteAction {
+  type: string;
+  [key: string]: string;
 }
 
 /**

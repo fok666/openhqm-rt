@@ -288,8 +288,8 @@ test.describe('Simulator', () => {
     
     // Second condition
     await page.click('[data-testid="add-condition-button"]');
-    await page.fill('[data-testid="condition-field-input"]:nth-of-type(2)', 'order.customer.id');
-    await page.selectOption('[data-testid="condition-operator-select"]:nth-of-type(2)', 'exists');
+    await page.locator('[data-testid="condition-field-input"]').nth(1).fill('order.customer.id');
+    await page.locator('[data-testid="condition-operator-select"]').nth(1).selectOption('exists');
     
     // Set to AND
     await page.selectOption('[data-testid="condition-operator"]', 'AND');
@@ -320,9 +320,9 @@ test.describe('Simulator', () => {
     
     // Second condition (won't match)
     await page.click('[data-testid="add-condition-button"]');
-    await page.fill('[data-testid="condition-field-input"]:nth-of-type(2)', 'order.type');
-    await page.selectOption('[data-testid="condition-operator-select"]:nth-of-type(2)', 'equals');
-    await page.fill('[data-testid="condition-value-input"]:nth-of-type(2)', 'special');
+    await page.locator('[data-testid="condition-field-input"]').nth(1).fill('order.type');
+    await page.locator('[data-testid="condition-operator-select"]').nth(1).selectOption('equals');
+    await page.locator('[data-testid="condition-value-input"]').nth(1).fill('special');
     
     // Set to OR
     await page.selectOption('[data-testid="condition-operator"]', 'OR');

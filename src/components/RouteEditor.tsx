@@ -257,6 +257,8 @@ export const RouteEditor: React.FC = () => {
               <option value="contains">contains</option>
               <option value="regex">regex</option>
               <option value="exists">exists</option>
+              <option value="gt">gt</option>
+              <option value="lt">lt</option>
             </select>
             <TextField
               size="small"
@@ -438,6 +440,86 @@ export const RouteEditor: React.FC = () => {
             placeholder="3"
           />
         </Box>
+      </Box>
+
+      <Divider sx={{ my: 3 }} />
+
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+            Actions
+          </Typography>
+          <Button
+            size="small"
+            startIcon={<AddIcon />}
+            onClick={() => {
+              const actions = [...(localRoute.actions || []), { type: 'log' }];
+              handleUpdate({ actions });
+            }}
+            data-testid="add-action-button"
+          >
+            Add Action
+          </Button>
+        </Box>
+        {(localRoute.actions || []).map((action, index) => (
+          <Box key={index} sx={{ display: 'flex', gap: 1, mb: 1, alignItems: 'center' }}>
+            <select
+              value={action.type}
+              onChange={(e) => {
+                const actions = [...(localRoute.actions || [])];
+                actions[index] = { ...actions[index], type: e.target.value };
+                handleUpdate({ actions });
+              }}
+              data-testid="action-type-select"
+              style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+            >
+              <option value="log">log</option>
+              <option value="notify">notify</option>
+              <option value="metric">metric</option>
+            </select>
+            <TextField
+              size="small"
+              label="Key"
+              value={Object.keys(action).find(k => k !== 'type') || ''}
+              onChange={(e) => {
+                const actions = [...(localRoute.actions || [])];
+                const oldKey = Object.keys(actions[index]).find(k => k !== 'type') || '';
+                const val = oldKey ? actions[index][oldKey] : '';
+                const newAction: Record<string, string> = { type: actions[index].type };
+                if (e.target.value) newAction[e.target.value] = val || '';
+                actions[index] = newAction;
+                handleUpdate({ actions });
+              }}
+              sx={{ flex: 1 }}
+              slotProps={{ htmlInput: { 'data-testid': 'action-key-input' } }}
+            />
+            <TextField
+              size="small"
+              label="Value"
+              value={(() => {
+                const key = Object.keys(action).find(k => k !== 'type');
+                return key ? action[key] : '';
+              })()}
+              onChange={(e) => {
+                const actions = [...(localRoute.actions || [])];
+                const key = Object.keys(actions[index]).find(k => k !== 'type') || 'value';
+                actions[index] = { ...actions[index], [key]: e.target.value };
+                handleUpdate({ actions });
+              }}
+              sx={{ flex: 1 }}
+              slotProps={{ htmlInput: { 'data-testid': 'action-value-input' } }}
+            />
+            <IconButton
+              size="small"
+              onClick={() => {
+                const actions = (localRoute.actions || []).filter((_, i) => i !== index);
+                handleUpdate({ actions });
+              }}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        ))}
       </Box>
 
       <Divider sx={{ my: 3 }} />

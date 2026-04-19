@@ -55,7 +55,7 @@ test.describe('Route Management', () => {
     // Add first condition
     await page.click('[data-testid="add-condition-button"]');
     await page.fill('[data-testid="condition-field-input"]', 'order.priority');
-    await helpers.selectMUIOption('condition-operator-select', 'equals');
+    await page.selectOption('[data-testid="condition-operator-select"]', 'equals');
     await page.fill('[data-testid="condition-value-input"]', 'high');
     
     // Add second condition
@@ -63,13 +63,12 @@ test.describe('Route Management', () => {
     const conditionFields = page.locator('[data-testid="condition-field-input"]');
     await conditionFields.nth(1).fill('customer.type');
     const conditionOperators = page.locator('[data-testid="condition-operator-select"]');
-    await conditionOperators.nth(1).click();
-    await page.click('li[data-value="equals"]');
+    await conditionOperators.nth(1).selectOption('equals');
     const conditionValues = page.locator('[data-testid="condition-value-input"]');
     await conditionValues.nth(1).fill('premium');
     
     // Set condition operator to AND
-    await helpers.selectMUIOption('condition-operator', 'AND');
+    await page.selectOption('[data-testid="condition-operator"]', 'AND');
     
     await helpers.saveRoute();
     

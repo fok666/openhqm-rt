@@ -123,6 +123,10 @@ export class RouteMatcher {
         }
         case 'exists':
           return fieldValue !== undefined && fieldValue !== null;
+        case 'gt':
+          return Number(fieldValue) > Number(cond.value);
+        case 'lt':
+          return Number(fieldValue) < Number(cond.value);
         default:
           return false;
       }

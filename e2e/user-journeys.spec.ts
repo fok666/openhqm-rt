@@ -56,6 +56,7 @@ test.describe('User Journeys', () => {
     await expect(page.locator('[data-testid="destination-display"]')).toContainText('order-service-high-priority');
     
     // Step 6: Export as ConfigMap
+    await page.click('[data-testid="route-editor-tab"]');
     await page.click('[data-testid="export-button"]');
     await page.fill('[data-testid="configmap-namespace-input"]', 'production');
     
@@ -81,9 +82,9 @@ test.describe('User Journeys', () => {
     await page.fill('[data-testid="condition-value-input"]', 'premium');
     
     await page.click('[data-testid="add-condition-button"]');
-    await page.fill('[data-testid="condition-field-input"]:nth-of-type(2)', 'order.total');
-    await page.selectOption('[data-testid="condition-operator-select"]:nth-of-type(2)', 'gt');
-    await page.fill('[data-testid="condition-value-input"]:nth-of-type(2)', '1000');
+    await page.locator('[data-testid="condition-field-input"]').nth(1).fill('order.total');
+    await page.locator('[data-testid="condition-operator-select"]').nth(1).selectOption('gt');
+    await page.locator('[data-testid="condition-value-input"]').nth(1).fill('1000');
     
     await page.selectOption('[data-testid="condition-operator"]', 'AND');
     
@@ -368,6 +369,7 @@ data:
     }
     
     // Step 3: Export with region-specific metadata
+    await page.click('[data-testid="route-editor-tab"]');
     await page.click('[data-testid="export-button"]');
     await page.fill('[data-testid="configmap-name-input"]', 'openhqm-routes-multi-region');
     
