@@ -216,7 +216,7 @@ Tests simulate actual user workflows:
 ## 📁 File Structure
 
 ```
-openhqm-rm/
+openhqm-rt/
 ├── e2e/
 │   ├── README.md                      # Complete testing guide
 │   ├── fixtures.ts                    # Test fixtures and helpers

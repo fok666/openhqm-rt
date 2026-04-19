@@ -81,7 +81,7 @@ This is the first production-ready release of OpenHQM Router Manager, a client-s
 
 ### \ud83d\ude80 Deployment
 - Automatic deployment to GitHub Pages
-- Live demo: https://fok666.github.io/openhqm-rm/
+- Live demo: https://fok666.github.io/openhqm-rt/
 - CDN-backed static hosting
 - Offline-capable after initial load
 

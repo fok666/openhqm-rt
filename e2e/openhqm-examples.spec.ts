@@ -13,9 +13,9 @@ import * as yaml from 'js-yaml';
  * 4. Exported ConfigMaps from Router Manager match OpenHQM format
  * 5. All examples are production-ready and functional
  * 
- * This creates a contract between openhqm and openhqm-rm:
+ * This creates a contract between openhqm and openhqm-rt:
  * - openhqm examples are the source of truth
- * - openhqm-rm must support all features in examples
+ * - openhqm-rt must support all features in examples
  * - Changes to examples trigger test failures if incompatible
  */
 

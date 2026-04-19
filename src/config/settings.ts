@@ -2,7 +2,7 @@ export const settings = {
   app: {
     name: 'OpenHQM Router Manager',
     version: '2.0.0',
-    repository: 'https://github.com/fok666/openhqm-rm',
+    repository: 'https://github.com/fok666/openhqm-rt',
   },
 
   storage: {
