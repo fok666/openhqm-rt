@@ -1,6 +1,7 @@
 import type { TransformResult, ValidationResult } from '../types';
 
 export class JQService {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- jq-web has no type definitions
   private jq: any = null;
   private initialized = false;
 
@@ -12,7 +13,8 @@ export class JQService {
       const jqModule = await import('jq-web');
       // jq-web exports a Promise via module.exports; handle different Vite interop formats
       const exported = jqModule.default ?? jqModule;
-      const instance = typeof exported === 'function' ? await exported() : await exported;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- jq-web runtime format varies
+      const instance: any = typeof exported === 'function' ? await exported() : await exported;
       // If instance has json method directly, use it; otherwise it might be a nested object
       this.jq = typeof instance?.json === 'function' ? instance : (instance?.default ?? instance);
       if (!this.jq || typeof this.jq.json !== 'function') {
@@ -25,6 +27,7 @@ export class JQService {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- jq-web accepts arbitrary JSON input
   async transform(expression: string, inputData: any): Promise<TransformResult> {
     if (!this.initialized) {
       await this.init();
@@ -40,7 +43,7 @@ export class JQService {
       console.log('JQ Transform - Result:', result);
 
       return { success: true, output: result };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('JQ Transform Error:', error);
       return {
         success: false,
@@ -59,7 +62,7 @@ export class JQService {
       // Test with empty object
       this.jq.json({}, expression);
       return { valid: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         valid: false,
         error: this.parseJQError(error),
@@ -68,14 +71,14 @@ export class JQService {
     }
   }
 
-  private parseJQError(error: any): string {
-    const message = error.message || error.toString();
+  private parseJQError(error: unknown): string {
+    const message = error instanceof Error ? error.message : String(error);
     return message.replace(/jq: error:?/gi, '').trim();
   }
 
-  private getSuggestions(error: any): string[] {
+  private getSuggestions(error: unknown): string[] {
     const suggestions: string[] = [];
-    const message = (error.message || '').toLowerCase();
+    const message = (error instanceof Error ? error.message : '').toLowerCase();
 
     if (message.includes('undefined') || message.includes('null')) {
       suggestions.push('Check if all field paths exist in your input data');
