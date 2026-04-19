@@ -271,10 +271,10 @@ data:
     await page.fill('[data-testid="condition-value-input"]', 'high');
     
     await page.click('[data-testid="add-condition-button"]');
-    await page.selectOption('[data-testid="condition-type-select"]:nth-of-type(2)', 'header');
-    await page.fill('[data-testid="condition-field-input"]:nth-of-type(2)', 'X-Customer-Type');
-    await page.selectOption('[data-testid="condition-operator-select"]:nth-of-type(2)', 'equals');
-    await page.fill('[data-testid="condition-value-input"]:nth-of-type(2)', 'premium');
+    await page.locator('[data-testid="condition-type-select"]').nth(1).selectOption('header');
+    await page.locator('[data-testid="condition-field-input"]').nth(1).fill('X-Customer-Type');
+    await page.locator('[data-testid="condition-operator-select"]').nth(1).selectOption('equals');
+    await page.locator('[data-testid="condition-value-input"]').nth(1).fill('premium');
     
     // Add transformation
     await page.click('[data-testid="enable-transform-toggle"]');

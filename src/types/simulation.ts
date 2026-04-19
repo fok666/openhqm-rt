@@ -1,13 +1,16 @@
 // Simulation and testing types
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- simulation operates on arbitrary JSON payloads
+type JsonValue = any;
+
 export interface SimulationContext {
   id: string;
   timestamp: string;
 
   // Input
   input: {
-    payload: any;
+    payload: JsonValue;
     headers: Record<string, string>;
-    metadata: Record<string, any>;
+    metadata: Record<string, JsonValue>;
   };
 
   // Execution trace
@@ -16,7 +19,7 @@ export interface SimulationContext {
   // Output
   output: {
     matchedRoute?: string;
-    transformedPayload?: any;
+    transformedPayload?: JsonValue;
     destination?: string;
     errors: SimulationError[];
   };
@@ -33,8 +36,8 @@ export interface SimulationStep {
   step: number;
   type: 'condition' | 'transform' | 'action' | 'route';
   description: string;
-  input?: any;
-  output?: any;
+  input?: JsonValue;
+  output?: JsonValue;
   duration: number;
   success: boolean;
   error?: string;
@@ -43,7 +46,7 @@ export interface SimulationStep {
 export interface ExecutedAction {
   type: string;
   key: string;
-  value: any;
+  value: JsonValue;
   success: boolean;
 }
 
@@ -60,13 +63,13 @@ export interface TestCase {
   description: string;
   routeName?: string; // Name of expected matching route
   input: {
-    payload: any;
+    payload: JsonValue;
     headers: Record<string, string>;
-    metadata: Record<string, any>;
+    metadata: Record<string, JsonValue>;
   };
   expectedOutput?: {
     routeName: string; // Expected route name to match
-    transformedPayload?: any;
+    transformedPayload?: JsonValue;
     destination?: string;
   };
   createdAt: string;

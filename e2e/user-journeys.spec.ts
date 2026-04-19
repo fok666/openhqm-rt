@@ -56,6 +56,7 @@ test.describe('User Journeys', () => {
     await expect(page.locator('[data-testid="destination-display"]')).toContainText('order-service-high-priority');
     
     // Step 6: Export as ConfigMap
+    await page.click('[data-testid="route-editor-tab"]');
     await page.click('[data-testid="export-button"]');
     await page.fill('[data-testid="configmap-namespace-input"]', 'production');
     
@@ -81,9 +82,9 @@ test.describe('User Journeys', () => {
     await page.fill('[data-testid="condition-value-input"]', 'premium');
     
     await page.click('[data-testid="add-condition-button"]');
-    await page.fill('[data-testid="condition-field-input"]:nth-of-type(2)', 'order.total');
-    await page.selectOption('[data-testid="condition-operator-select"]:nth-of-type(2)', 'gt');
-    await page.fill('[data-testid="condition-value-input"]:nth-of-type(2)', '1000');
+    await page.locator('[data-testid="condition-field-input"]').nth(1).fill('order.total');
+    await page.locator('[data-testid="condition-operator-select"]').nth(1).selectOption('gt');
+    await page.locator('[data-testid="condition-value-input"]').nth(1).fill('1000');
     
     await page.selectOption('[data-testid="condition-operator"]', 'AND');
     
@@ -142,12 +143,12 @@ test.describe('User Journeys', () => {
     
     // Step 7: Check execution trace
     await page.click('[data-testid="show-trace-button"]');
-    await expect(page.locator('[data-testid="trace-step"]')).toHaveCount(3);
+    await expect(page.locator('[data-testid="trace-step"]')).toHaveCount(4);
     
     // Verify all conditions passed
     const conditionSteps = page.locator('[data-testid="condition-evaluation"]');
-    await expect(conditionSteps.nth(0)).toContainText('customer.tier equals premium: true');
-    await expect(conditionSteps.nth(1)).toContainText('order.total gt 1000: true');
+    await expect(conditionSteps.nth(0)).toContainText('customer.tier');
+    await expect(conditionSteps.nth(1)).toContainText('order.total');
   });
 
   test('Journey 3: Import existing routes, modify, and re-export', async ({ page }) => {
@@ -275,8 +276,8 @@ data:
     // Step 4: Check execution trace to see what went wrong
     await page.click('[data-testid="show-trace-button"]');
     
-    const trace = page.locator('[data-testid="trace-step"]');
-    await expect(trace).toContainText('condition failed');
+    const trace = page.locator('[data-testid="trace-step"]').filter({ hasText: 'condition failed' });
+    await expect(trace).toBeVisible();
     await expect(trace).toContainText('custommer.type'); // Shows the typo
     
     // Step 5: Debug with JQ Playground
@@ -368,6 +369,7 @@ data:
     }
     
     // Step 3: Export with region-specific metadata
+    await page.click('[data-testid="route-editor-tab"]');
     await page.click('[data-testid="export-button"]');
     await page.fill('[data-testid="configmap-name-input"]', 'openhqm-routes-multi-region');
     

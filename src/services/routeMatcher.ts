@@ -52,28 +52,30 @@ export class RouteMatcher {
       return true;
     }
 
+    // If route has conditions array, evaluate them
+    if (route.conditions && route.conditions.length > 0) {
+      return this.evaluateConditions(route, context);
+    }
+
     // No matching criteria means always match
     if (!route.match_field && !route.match_value && !route.match_pattern) {
       return true;
     }
 
-    // Get the value at match_field from the payload
+    // Legacy: Get the value at match_field from the payload
     if (route.match_field) {
       const fieldValue = this.getNestedValue(context.input.payload, route.match_field);
 
-      // If neither match_value nor match_pattern is set, check field exists
-      if (route.match_value === undefined && !route.match_pattern) {
+      if (!route.match_value && !route.match_pattern) {
         return fieldValue !== undefined && fieldValue !== null;
       }
 
-      // Check exact match
-      if (route.match_value !== undefined) {
+      if (route.match_value) {
         if (String(fieldValue) !== String(route.match_value)) {
           return false;
         }
       }
 
-      // Check pattern match
       if (route.match_pattern) {
         const regex = this.getRegex(route.match_pattern);
         if (!regex || !regex.test(String(fieldValue ?? ''))) {
@@ -84,7 +86,6 @@ export class RouteMatcher {
       return true;
     }
 
-    // match_pattern without match_field: match against JSON string of payload
     if (route.match_pattern) {
       const regex = this.getRegex(route.match_pattern);
       if (!regex) return false;
@@ -93,6 +94,45 @@ export class RouteMatcher {
     }
 
     return false;
+  }
+
+  private evaluateConditions(route: Route, context: SimulationContext): boolean {
+    const conditions = route.conditions!;
+    const operator = route.conditionOperator || 'AND';
+
+    const results = conditions.map((cond) => {
+      let fieldValue: unknown;
+      const type = cond.type || 'payload';
+
+      if (type === 'header') {
+        fieldValue = context.input.headers?.[cond.field];
+      } else if (type === 'metadata') {
+        fieldValue = context.input.metadata?.[cond.field];
+      } else {
+        fieldValue = this.getNestedValue(context.input.payload, cond.field);
+      }
+
+      switch (cond.operator) {
+        case 'equals':
+          return String(fieldValue) === String(cond.value);
+        case 'contains':
+          return String(fieldValue ?? '').includes(String(cond.value));
+        case 'regex': {
+          const regex = this.getRegex(cond.value || '');
+          return regex ? regex.test(String(fieldValue ?? '')) : false;
+        }
+        case 'exists':
+          return fieldValue !== undefined && fieldValue !== null;
+        case 'gt':
+          return Number(fieldValue) > Number(cond.value);
+        case 'lt':
+          return Number(fieldValue) < Number(cond.value);
+        default:
+          return false;
+      }
+    });
+
+    return operator === 'OR' ? results.some(Boolean) : results.every(Boolean);
   }
 
   private getNestedValue(obj: Record<string, unknown>, path: string): unknown {

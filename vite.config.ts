@@ -10,8 +10,9 @@ export default defineConfig(({ mode }) => ({
     sourcemap: true,
   },
   optimizeDeps: {
-    exclude: ['jq-web'],
+    include: ['jq-web'],
   },
+  assetsInclude: ['**/*.wasm'],
   server: {
     port: 5173,
     open: true,

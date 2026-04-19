@@ -108,29 +108,34 @@ export class StorageService {
 
   importFromYAML(yamlContent: string): Route[] {
     try {
-      const parsed: any = yaml.load(yamlContent);
+      const parsed = yaml.load(yamlContent) as Record<string, unknown> | unknown[] | undefined;
 
       // Case 1: Direct routing configuration (routes array directly)
       if (Array.isArray(parsed)) {
-        return parsed;
+        return parsed as Route[];
       }
 
-      // Case 2: Routing config object with routes array
-      if (parsed.routes && Array.isArray(parsed.routes)) {
-        return parsed.routes;
-      }
+      if (parsed && typeof parsed === 'object') {
+        const obj = parsed as Record<string, unknown>;
 
-      // Case 3: Full ConfigMap format
-      if (parsed.data) {
-        // Try 'routing.yaml' key first (openhqm format)
-        if (parsed.data['routing.yaml']) {
-          const routingConfig = yaml.load(parsed.data['routing.yaml']) as RoutingConfig;
-          return routingConfig.routes;
+        // Case 2: Routing config object with routes array
+        if (Array.isArray(obj.routes)) {
+          return obj.routes as Route[];
         }
-        // Fallback to 'routes.yaml' key
-        if (parsed.data['routes.yaml']) {
-          const routingConfig = yaml.load(parsed.data['routes.yaml']) as RoutingConfig;
-          return routingConfig.routes;
+
+        // Case 3: Full ConfigMap format
+        const data = obj.data as Record<string, string> | undefined;
+        if (data) {
+          // Try 'routing.yaml' key first (openhqm format)
+          if (data['routing.yaml']) {
+            const routingConfig = yaml.load(data['routing.yaml']) as RoutingConfig;
+            return routingConfig.routes;
+          }
+          // Fallback to 'routes.yaml' key
+          if (data['routes.yaml']) {
+            const routingConfig = yaml.load(data['routes.yaml']) as RoutingConfig;
+            return routingConfig.routes;
+          }
         }
       }
 

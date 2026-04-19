@@ -30,6 +30,7 @@ globalThis.localStorage = localStorageMock as Storage;
 // Mock jq-web
 vi.mock('jq-web', () => ({
   default: async () => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JQ mock accepts arbitrary JSON
     json: (input: any, filter: string) => {
       // Simple mock implementation
       if (filter === '.') return input;

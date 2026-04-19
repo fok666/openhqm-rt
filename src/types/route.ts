@@ -14,6 +14,16 @@ export interface RoutingConfig {
 }
 
 /**
+ * Route condition for complex matching
+ */
+export interface RouteCondition {
+  type?: 'payload' | 'header' | 'metadata';
+  field: string;
+  operator: string;
+  value?: string;
+}
+
+/**
  * Individual route definition
  * Matches openhqm route schema
  */
@@ -29,6 +39,8 @@ export interface Route {
   match_field?: string;
   match_value?: string;
   match_pattern?: string;
+  conditions?: RouteCondition[];
+  conditionOperator?: 'AND' | 'OR';
 
   // Destination
   endpoint: string;
@@ -45,6 +57,14 @@ export interface Route {
   // Settings
   timeout?: number;
   max_retries?: number;
+
+  // Actions
+  actions?: RouteAction[];
+}
+
+export interface RouteAction {
+  type: string;
+  [key: string]: string;
 }
 
 /**

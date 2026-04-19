@@ -53,7 +53,7 @@ function App() {
         data-testid="app-container"
         sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}
       >
-        <AppBar position="static">
+        <AppBar position="static" component="nav">
           <Toolbar>
             <Typography variant="h6" component="h1" sx={{ flexGrow: 1 }}>
               {settings.app.name} v{settings.app.version}
@@ -78,7 +78,7 @@ function App() {
           <Tab label="Export/Import" data-testid="configmap-tab" />
         </Tabs>
 
-        <Box sx={{ flexGrow: 1, display: 'flex', overflow: 'hidden' }}>
+        <Box component="main" id="main-content" sx={{ flexGrow: 1, display: 'flex', overflow: 'hidden' }}>
           {currentTab === 0 && (
             <>
               <Box sx={{ width: 300, borderRight: 1, borderColor: 'divider', overflow: 'hidden' }}>
