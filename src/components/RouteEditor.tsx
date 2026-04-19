@@ -22,7 +22,7 @@ import {
   Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { useRouteStore } from '../store';
-import type { Route, RouteCondition } from '../types';
+import type { Route, RouteCondition, RouteAction } from '../types';
 
 interface Condition {
   type: string;
