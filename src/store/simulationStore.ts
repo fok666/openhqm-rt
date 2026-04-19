@@ -170,10 +170,10 @@ export const useSimulationStore = create<SimulationStore>((set, get) => ({
         currentSimulation: simulation,
         isRunning: false,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       simulation.output.errors.push({
         severity: 'error',
-        message: error.message || 'Simulation failed',
+        message: error instanceof Error ? error.message : 'Simulation failed',
         context: 'Simulation',
       });
 
