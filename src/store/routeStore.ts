@@ -84,7 +84,7 @@ export const useRouteStore = create<RouteStore>((set, get) => ({
 
     const newRoute: Route = {
       ...route,
-      name: `${route.name}-copy`,
+      name: `${route.name} (Copy)`,
     };
 
     const routes = [...get().routes, newRoute];

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   TextField,
@@ -14,22 +14,43 @@ import {
   FormControlLabel,
   Alert,
   Snackbar,
+  IconButton,
 } from '@mui/material';
-import { Save as SaveIcon } from '@mui/icons-material';
-import Editor from '@monaco-editor/react';
+import {
+  Save as SaveIcon,
+  Add as AddIcon,
+  Delete as DeleteIcon,
+} from '@mui/icons-material';
 import { useRouteStore } from '../store';
 import type { Route } from '../types';
+
+interface Condition {
+  field: string;
+  operator: string;
+  value: string;
+}
 
 export const RouteEditor: React.FC = () => {
   const { selectedRoute, updateRoute } = useRouteStore();
   const [localRoute, setLocalRoute] = useState<Route | null>(null);
   const [validationError, setValidationError] = useState<string>('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [conditions, setConditions] = useState<Condition[]>([]);
+  const [conditionOperator, setConditionOperator] = useState<string>('AND');
+  const [transformEnabled, setTransformEnabled] = useState(false);
+  const originalNameRef = useRef<string>('');
 
   useEffect(() => {
     setLocalRoute(selectedRoute);
     setValidationError('');
     setShowSuccess(false);
+    if (selectedRoute) {
+      originalNameRef.current = selectedRoute.name;
+      setTransformEnabled(
+        selectedRoute.transform_type !== undefined &&
+        selectedRoute.transform_type !== 'passthrough'
+      );
+    }
   }, [selectedRoute]);
 
   if (!localRoute) {
@@ -55,20 +76,38 @@ export const RouteEditor: React.FC = () => {
   };
 
   const handleSave = () => {
-    // Validate required fields
     if (!localRoute.name || localRoute.name.trim() === '') {
       setValidationError('Route name is required');
       return;
     }
-    if (!localRoute.endpoint || localRoute.endpoint.trim() === '') {
-      setValidationError('Endpoint is required');
-      return;
-    }
 
-    // Save to store
-    updateRoute(localRoute.name, localRoute);
+    updateRoute(originalNameRef.current, localRoute);
+    originalNameRef.current = localRoute.name;
     setValidationError('');
     setShowSuccess(true);
+  };
+
+  const handleAddCondition = () => {
+    setConditions([...conditions, { field: '', operator: 'equals', value: '' }]);
+  };
+
+  const handleUpdateCondition = (index: number, updates: Partial<Condition>) => {
+    const updated = conditions.map((c, i) => (i === index ? { ...c, ...updates } : c));
+    setConditions(updated);
+  };
+
+  const handleRemoveCondition = (index: number) => {
+    setConditions(conditions.filter((_, i) => i !== index));
+  };
+
+  const handleToggleTransform = () => {
+    const newEnabled = !transformEnabled;
+    setTransformEnabled(newEnabled);
+    if (newEnabled) {
+      handleUpdate({ transform_type: 'jq' });
+    } else {
+      handleUpdate({ transform_type: 'passthrough', transform: '' });
+    }
   };
 
   return (
@@ -79,7 +118,6 @@ export const RouteEditor: React.FC = () => {
 
       <Divider sx={{ my: 2 }} />
 
-      {/* Basic Information */}
       <Box sx={{ mb: 3 }}>
         <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
           Basic Information
@@ -138,43 +176,109 @@ export const RouteEditor: React.FC = () => {
 
       <Divider sx={{ my: 3 }} />
 
-      {/* Matching Conditions */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
-          Matching Conditions
-        </Typography>
-        <TextField
-          label="Match Field"
-          value={localRoute.match_field || ''}
-          onChange={(e) => handleUpdate({ match_field: e.target.value })}
-          fullWidth
-          margin="normal"
-          placeholder="e.g., metadata.type, payload.action"
-          slotProps={{ htmlInput: { 'data-testid': 'match-field-input' } }}
-        />
-        <TextField
-          label="Match Value"
-          value={localRoute.match_value || ''}
-          onChange={(e) => handleUpdate({ match_value: e.target.value })}
-          fullWidth
-          margin="normal"
-          placeholder="Exact value to match"
-          slotProps={{ htmlInput: { 'data-testid': 'match-value-input' } }}
-        />
-        <TextField
-          label="Match Pattern (Regex)"
-          value={localRoute.match_pattern || ''}
-          onChange={(e) => handleUpdate({ match_pattern: e.target.value })}
-          fullWidth
-          margin="normal"
-          placeholder="e.g., ^notification\\."
-          slotProps={{ htmlInput: { 'data-testid': 'match-pattern-input' } }}
-        />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+            Conditions
+          </Typography>
+          <Button
+            size="small"
+            startIcon={<AddIcon />}
+            onClick={handleAddCondition}
+            data-testid="add-condition-button"
+          >
+            Add Condition
+          </Button>
+        </Box>
+
+        {conditions.length > 1 && (
+          <FormControl size="small" sx={{ mb: 2, minWidth: 120 }}>
+            <InputLabel>Logic</InputLabel>
+            <Select
+              value={conditionOperator}
+              onChange={(e) => setConditionOperator(e.target.value)}
+              label="Logic"
+              data-testid="condition-operator"
+            >
+              <MenuItem value="AND">AND</MenuItem>
+              <MenuItem value="OR">OR</MenuItem>
+            </Select>
+          </FormControl>
+        )}
+
+        {conditions.map((condition, index) => (
+          <Box key={index} sx={{ display: 'flex', gap: 1, mb: 1, alignItems: 'center' }}>
+            <TextField
+              size="small"
+              label="Field"
+              value={condition.field}
+              onChange={(e) => handleUpdateCondition(index, { field: e.target.value })}
+              sx={{ flex: 2 }}
+              slotProps={{ htmlInput: { 'data-testid': 'condition-field-input' } }}
+            />
+            <FormControl size="small" sx={{ flex: 1 }}>
+              <InputLabel>Operator</InputLabel>
+              <Select
+                value={condition.operator}
+                onChange={(e) => handleUpdateCondition(index, { operator: e.target.value })}
+                label="Operator"
+                data-testid="condition-operator-select"
+              >
+                <MenuItem value="equals">equals</MenuItem>
+                <MenuItem value="contains">contains</MenuItem>
+                <MenuItem value="regex">regex</MenuItem>
+                <MenuItem value="exists">exists</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              size="small"
+              label="Value"
+              value={condition.value}
+              onChange={(e) => handleUpdateCondition(index, { value: e.target.value })}
+              sx={{ flex: 2 }}
+              slotProps={{ htmlInput: { 'data-testid': 'condition-value-input' } }}
+            />
+            <IconButton size="small" onClick={() => handleRemoveCondition(index)}>
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        ))}
+
+        {conditions.length === 0 && (
+          <>
+            <TextField
+              label="Match Field"
+              value={localRoute.match_field || ''}
+              onChange={(e) => handleUpdate({ match_field: e.target.value })}
+              fullWidth
+              margin="normal"
+              placeholder="e.g., metadata.type, payload.action"
+              slotProps={{ htmlInput: { 'data-testid': 'match-field-input' } }}
+            />
+            <TextField
+              label="Match Value"
+              value={localRoute.match_value || ''}
+              onChange={(e) => handleUpdate({ match_value: e.target.value })}
+              fullWidth
+              margin="normal"
+              placeholder="Exact value to match"
+              slotProps={{ htmlInput: { 'data-testid': 'match-value-input' } }}
+            />
+            <TextField
+              label="Match Pattern (Regex)"
+              value={localRoute.match_pattern || ''}
+              onChange={(e) => handleUpdate({ match_pattern: e.target.value })}
+              fullWidth
+              margin="normal"
+              placeholder="e.g., ^notification\\."
+              slotProps={{ htmlInput: { 'data-testid': 'match-pattern-input' } }}
+            />
+          </>
+        )}
       </Box>
 
       <Divider sx={{ my: 3 }} />
 
-      {/* Destination */}
       <Box sx={{ mb: 3 }}>
         <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
           Destination
@@ -185,7 +289,6 @@ export const RouteEditor: React.FC = () => {
           onChange={(e) => handleUpdate({ endpoint: e.target.value })}
           fullWidth
           margin="normal"
-          required
           placeholder="e.g., user-service, http://api.example.com"
           slotProps={{ htmlInput: { 'data-testid': 'destination-endpoint-input' } }}
         />
@@ -207,50 +310,84 @@ export const RouteEditor: React.FC = () => {
 
       <Divider sx={{ my: 3 }} />
 
-      {/* Transformation */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
-          Transformation
-        </Typography>
-        <FormControl fullWidth margin="normal">
-          <InputLabel>Transform Type</InputLabel>
-          <Select
-            value={localRoute.transform_type || 'passthrough'}
-            onChange={(e) => handleUpdate({ transform_type: e.target.value as any })}
-            label="Transform Type"
-          >
-            <MenuItem value="passthrough">Passthrough</MenuItem>
-            <MenuItem value="jq">JQ</MenuItem>
-            <MenuItem value="template">Template</MenuItem>
-            <MenuItem value="jsonpath">JSONPath</MenuItem>
-          </Select>
-        </FormControl>
-        {localRoute.transform_type && localRoute.transform_type !== 'passthrough' && (
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              Transform Expression
-            </Typography>
-            <Box sx={{ border: 1, borderColor: 'divider', borderRadius: 1 }}>
-              <Editor
-                height="200px"
-                language="javascript"
-                value={localRoute.transform || ''}
-                onChange={(value) => handleUpdate({ transform: value || '' })}
-                options={{
-                  minimap: { enabled: false },
-                  fontSize: 14,
-                  lineNumbers: 'on',
-                  wordWrap: 'on',
-                }}
-              />
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+            Transformation
+          </Typography>
+          <Switch
+            checked={transformEnabled}
+            onChange={handleToggleTransform}
+            data-testid="enable-transform-toggle"
+          />
+        </Box>
+        {transformEnabled && (
+          <>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Transform Type</InputLabel>
+              <Select
+                value={localRoute.transform_type || 'jq'}
+                onChange={(e) => handleUpdate({ transform_type: e.target.value as Route['transform_type'] })}
+                label="Transform Type"
+              >
+                <MenuItem value="jq">JQ</MenuItem>
+                <MenuItem value="template">Template</MenuItem>
+                <MenuItem value="jsonpath">JSONPath</MenuItem>
+              </Select>
+            </FormControl>
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Transform Expression
+              </Typography>
+              <Box
+                data-testid="jq-expression-editor"
+                sx={{ border: 1, borderColor: 'divider', borderRadius: 1 }}
+              >
+                <textarea
+                  value={localRoute.transform || ''}
+                  onChange={(e) => handleUpdate({ transform: e.target.value })}
+                  style={{
+                    width: '100%',
+                    height: '200px',
+                    fontFamily: '"Fira Code", "Consolas", "Monaco", monospace',
+                    fontSize: '14px',
+                    lineHeight: '1.5',
+                    padding: '8px 12px',
+                    border: 'none',
+                    outline: 'none',
+                    resize: 'none',
+                    backgroundColor: '#fff',
+                    color: '#333',
+                    tabSize: 2,
+                    boxSizing: 'border-box' as const,
+                    overflow: 'auto',
+                  }}
+                  spellCheck={false}
+                />
+              </Box>
+              <Button
+                variant="outlined"
+                size="small"
+                sx={{ mt: 1 }}
+                data-testid="test-transform-button"
+              >
+                Test Transform
+              </Button>
             </Box>
-          </Box>
+          </>
+        )}
+        {!transformEnabled && (
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Transform Type</InputLabel>
+            <Select value="passthrough" label="Transform Type" disabled>
+              <MenuItem value="passthrough">Passthrough</MenuItem>
+            </Select>
+          </FormControl>
         )}
       </Box>
 
       <Divider sx={{ my: 3 }} />
 
-      {/* Settings */}
       <Box sx={{ mb: 3 }}>
         <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
           Settings
@@ -271,15 +408,6 @@ export const RouteEditor: React.FC = () => {
             onChange={(e) => handleUpdate({ max_retries: parseInt(e.target.value) || undefined })}
             sx={{ flex: 1 }}
             placeholder="3"
-          />
-          <FormControlLabel
-            control={
-              <Switch
-                checked={localRoute.is_default || false}
-                onChange={(e) => handleUpdate({ is_default: e.target.checked })}
-              />
-            }
-            label="Default Route"
           />
         </Box>
       </Box>

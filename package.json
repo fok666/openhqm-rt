@@ -19,7 +19,7 @@
     "test:e2e:codegen": "playwright codegen http://localhost:5173",
     "test:e2e:examples": "playwright test openhqm-examples",
     "test:e2e:configmap": "playwright test configmap-import",
-    "test:all": "npm run test && npm run test:e2e",
+    "test:all": "vitest run && npm run test:e2e",
     "playwright:install": "playwright install --with-deps"
   },
   "dependencies": {

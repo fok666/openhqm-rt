@@ -5,18 +5,20 @@ import {
   Typography,
   Button,
   Alert,
-  Tabs,
-  Tab,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import {
   Download as DownloadIcon,
   Upload as UploadIcon,
   ContentPaste as PasteIcon,
+  ContentCopy as CopyIcon,
+  Preview as PreviewIcon,
 } from '@mui/icons-material';
 import Editor from '@monaco-editor/react';
 import { useRouteStore } from '../store';
@@ -28,42 +30,59 @@ export const ConfigMapManager: React.FC = () => {
   const [preview, setPreview] = useState('');
   const [error, setError] = useState('');
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [importContent, setImportContent] = useState('');
   const [importSuccess, setImportSuccess] = useState(false);
+  const [importError, setImportError] = useState('');
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [configmapName, setConfigmapName] = useState('openhqm-routes');
+  const [configmapNamespace, setConfigmapNamespace] = useState('openhqm');
 
-  const handleExport = () => {
+  const generateExport = (format?: 'yaml' | 'json') => {
+    const fmt = format || exportFormat;
     try {
       const content =
-        exportFormat === 'yaml'
+        fmt === 'yaml'
           ? storageService.exportToYAML(routes)
           : storageService.exportToJSON(routes);
-
-      setPreview(content);
-      setError('');
+      return content;
     } catch (err: any) {
       setError(`Export failed: ${err.message}`);
+      return '';
     }
+  };
+
+  const handlePreview = () => {
+    const content = generateExport();
+    setPreview(content);
+    setError('');
   };
 
   const handleDownload = () => {
     try {
-      const content =
-        preview ||
-        (exportFormat === 'yaml'
-          ? storageService.exportToYAML(routes)
-          : storageService.exportToJSON(routes));
-
+      const content = generateExport();
       const filename = exportFormat === 'yaml' ? 'openhqm-routes.yaml' : 'openhqm-routes.json';
       const mimeType = exportFormat === 'yaml' ? 'text/yaml' : 'application/json';
-
       storageService.downloadFile(content, filename, mimeType);
       setError('');
+      setExportDialogOpen(false);
     } catch (err: any) {
       setError(`Download failed: ${err.message}`);
     }
   };
 
-  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCopyToClipboard = async () => {
+    try {
+      const content = preview || generateExport();
+      await navigator.clipboard.writeText(content);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 3000);
+    } catch (err: any) {
+      setError(`Copy failed: ${err.message}`);
+    }
+  };
+
+  const handleImportFile = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -74,6 +93,7 @@ export const ConfigMapManager: React.FC = () => {
         const importedRoutes = storageService.importFromYAML(content);
         setRoutes(importedRoutes);
         setError('');
+        setImportError('');
         setImportSuccess(true);
         setTimeout(() => setImportSuccess(false), 3000);
       } catch (err: any) {
@@ -88,28 +108,43 @@ export const ConfigMapManager: React.FC = () => {
       const importedRoutes = storageService.importFromYAML(importContent);
       setRoutes(importedRoutes);
       setError('');
+      setImportError('');
       setImportSuccess(true);
       setImportDialogOpen(false);
       setImportContent('');
       setTimeout(() => setImportSuccess(false), 3000);
     } catch (err: any) {
-      setError(`Import failed: ${err.message}`);
+      setImportError(`Invalid ConfigMap format: ${err.message}`);
     }
+  };
+
+  const handleOpenExportDialog = () => {
+    setExportDialogOpen(true);
+    handlePreview();
   };
 
   const handleOpenImportDialog = () => {
     setImportDialogOpen(true);
     setError('');
+    setImportError('');
   };
 
   const handleCloseImportDialog = () => {
     setImportDialogOpen(false);
     setImportContent('');
+    setImportError('');
+  };
+
+  const handleCloseExportDialog = () => {
+    setExportDialogOpen(false);
   };
 
   React.useEffect(() => {
     if (routes.length > 0) {
-      handleExport();
+      const content = generateExport();
+      setPreview(content);
+    } else {
+      setPreview('');
     }
   }, [routes, exportFormat]);
 
@@ -131,6 +166,12 @@ export const ConfigMapManager: React.FC = () => {
         </Alert>
       )}
 
+      {copySuccess && (
+        <Alert severity="success" sx={{ mb: 2 }} data-testid="copy-success-message">
+          ConfigMap copied to clipboard!
+        </Alert>
+      )}
+
       <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
         <Button variant="outlined" component="label" startIcon={<UploadIcon />}>
           Import from File
@@ -138,7 +179,7 @@ export const ConfigMapManager: React.FC = () => {
             type="file"
             hidden
             accept=".yaml,.yml,.json"
-            onChange={handleImport}
+            onChange={handleImportFile}
             data-testid="import-file-input"
           />
         </Button>
@@ -152,25 +193,42 @@ export const ConfigMapManager: React.FC = () => {
           Paste ConfigMap
         </Button>
 
-        <Tabs value={exportFormat} onChange={(_, v) => setExportFormat(v)}>
-          <Tab label="YAML" value="yaml" />
-          <Tab label="JSON" value="json" />
-        </Tabs>
-
         <Box sx={{ flex: 1 }} />
 
         <Button
           variant="contained"
           startIcon={<DownloadIcon />}
-          onClick={handleDownload}
-          disabled={routes.length === 0}
+          onClick={handleOpenExportDialog}
           data-testid="export-button"
         >
-          Download ConfigMap
+          Export ConfigMap
         </Button>
       </Box>
 
       {routes.length > 0 && (
+        <Box sx={{ mb: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<PreviewIcon />}
+            onClick={handlePreview}
+            data-testid="preview-configmap-button"
+          >
+            Preview
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<CopyIcon />}
+            onClick={handleCopyToClipboard}
+            data-testid="copy-configmap-button"
+          >
+            Copy
+          </Button>
+        </Box>
+      )}
+
+      {preview && routes.length > 0 && (
         <Box
           data-testid="configmap-preview"
           sx={{
@@ -196,6 +254,7 @@ export const ConfigMapManager: React.FC = () => {
 
       {routes.length === 0 && (
         <Box
+          data-testid="configmap-preview"
           sx={{
             flexGrow: 1,
             display: 'flex',
@@ -207,6 +266,76 @@ export const ConfigMapManager: React.FC = () => {
           <Typography>Create routes to generate ConfigMap</Typography>
         </Box>
       )}
+
+      {/* Export Dialog */}
+      <Dialog
+        open={exportDialogOpen}
+        onClose={handleCloseExportDialog}
+        maxWidth="md"
+        fullWidth
+        data-testid="export-dialog"
+      >
+        <DialogTitle>Export ConfigMap</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" gutterBottom>Format</Typography>
+            <ToggleButtonGroup
+              value={exportFormat}
+              exclusive
+              onChange={(_, val) => { if (val) { setExportFormat(val); handlePreview(); } }}
+              size="small"
+            >
+              <ToggleButton value="yaml" data-testid="export-format-yaml">YAML</ToggleButton>
+              <ToggleButton value="json" data-testid="export-format-json">JSON</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+
+          <Box sx={{ mb: 2, display: 'flex', gap: 2 }}>
+            <TextField
+              label="ConfigMap Name"
+              value={configmapName}
+              onChange={(e) => setConfigmapName(e.target.value)}
+              size="small"
+              data-testid="configmap-name-input"
+              slotProps={{ htmlInput: { 'data-testid': 'configmap-name-input' } }}
+            />
+            <TextField
+              label="Namespace"
+              value={configmapNamespace}
+              onChange={(e) => setConfigmapNamespace(e.target.value)}
+              size="small"
+              data-testid="configmap-namespace-input"
+              slotProps={{ htmlInput: { 'data-testid': 'configmap-namespace-input' } }}
+            />
+          </Box>
+
+          <Box sx={{ height: 300, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+            <Editor
+              height="100%"
+              language={exportFormat}
+              value={preview}
+              options={{ readOnly: true, minimap: { enabled: false }, fontSize: 13 }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseExportDialog}>Cancel</Button>
+          <Button
+            onClick={handleCopyToClipboard}
+            startIcon={<CopyIcon />}
+          >
+            Copy
+          </Button>
+          <Button
+            onClick={handleDownload}
+            variant="contained"
+            startIcon={<DownloadIcon />}
+            data-testid="export-download-button"
+          >
+            Download
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Import Dialog */}
       <Dialog
@@ -221,6 +350,11 @@ export const ConfigMapManager: React.FC = () => {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Paste your ConfigMap YAML or the routing.yaml content below
           </Typography>
+          {importError && (
+            <Alert severity="error" sx={{ mb: 2 }} data-testid="import-error">
+              {importError}
+            </Alert>
+          )}
           <TextField
             multiline
             rows={15}

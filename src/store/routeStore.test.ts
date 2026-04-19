@@ -152,7 +152,7 @@ describe('RouteStore', () => {
 
       const routes = useRouteStore.getState().routes;
       expect(routes).toHaveLength(2);
-      expect(routes[1].name).toBe('Test Route-copy');
+      expect(routes[1].name).toBe('Test Route (Copy)');
     });
 
     it('should generate different name for duplicated route', () => {
