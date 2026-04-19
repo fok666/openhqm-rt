@@ -151,7 +151,9 @@ export const RouteEditor: React.FC = () => {
           fullWidth
           margin="normal"
           required
-          slotProps={{ htmlInput: { 'data-testid': 'route-name-input' } }}
+          slotProps={{ htmlInput: { 'data-testid': 'route-name-input', id: 'route-name-input', 'aria-required': 'true', 'aria-describedby': 'route-name-help' } }}
+          helperText="Unique identifier for this route"
+          FormHelperTextProps={{ id: 'route-name-help' }}
         />
         <TextField
           label="Description"
@@ -525,7 +527,7 @@ export const RouteEditor: React.FC = () => {
       <Divider sx={{ my: 3 }} />
 
       {validationError && (
-        <Alert severity="error" data-testid="validation-error" sx={{ mb: 2 }}>
+        <Alert severity="error" data-testid="validation-error" role="alert" aria-live="assertive" sx={{ mb: 2 }}>
           {validationError}
         </Alert>
       )}
@@ -551,6 +553,8 @@ export const RouteEditor: React.FC = () => {
           severity="success"
           onClose={() => setShowSuccess(false)}
           data-testid="save-success-message"
+          role="status"
+          aria-live="polite"
         >
           Route saved successfully!
         </Alert>
