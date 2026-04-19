@@ -87,6 +87,12 @@ export const RouteEditor: React.FC = () => {
     const updated = { ...localRoute, ...updates };
     setLocalRoute(updated);
     setValidationError('');
+    // Persist to store so state survives tab switches
+    const currentName = originalNameRef.current;
+    updateRoute(currentName, updates);
+    if (updates.name !== undefined) {
+      originalNameRef.current = updates.name;
+    }
   };
 
   const handleSave = () => {
@@ -110,12 +116,22 @@ export const RouteEditor: React.FC = () => {
   };
 
   const handleAddCondition = () => {
-    setConditions([...conditions, { type: 'payload', field: '', operator: 'equals', value: '' }]);
+    const newConditions = [...conditions, { type: 'payload', field: '', operator: 'equals', value: '' }];
+    setConditions(newConditions);
+    syncConditionsToStore(newConditions, conditionOperator);
   };
 
   const handleUpdateCondition = (index: number, updates: Partial<Condition>) => {
     const updated = conditions.map((c, i) => (i === index ? { ...c, ...updates } : c));
     setConditions(updated);
+    syncConditionsToStore(updated, conditionOperator);
+  };
+
+  const syncConditionsToStore = (conds: Condition[], operator: string) => {
+    const routeConditions = conds
+      .filter((c) => c.field)
+      .map((c) => ({ type: c.type as 'payload' | 'header' | 'metadata', field: c.field, operator: c.operator, value: c.value }));
+    updateRoute(originalNameRef.current, { conditions: routeConditions, conditionOperator: operator as 'AND' | 'OR' });
   };
 
   const handleRemoveCondition = (index: number) => {

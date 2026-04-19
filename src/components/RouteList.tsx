@@ -50,6 +50,7 @@ export const RouteList: React.FC = () => {
   const [configMapName, setConfigMapName] = useState('openhqm-routes');
   const [configMapNamespace, setConfigMapNamespace] = useState('openhqm');
   const [customLabels, setCustomLabels] = useState<{ key: string; value: string }[]>([]);
+  const [customAnnotations, setCustomAnnotations] = useState<{ key: string; value: string }[]>([]);
   const [copySuccess, setCopySuccess] = useState(false);
 
   // Import state
@@ -125,6 +126,10 @@ export const RouteList: React.FC = () => {
     customLabels.forEach((l) => {
       if (l.key) labels[l.key] = l.value;
     });
+    const annotations: Record<string, string> = { managedBy: 'router-manager' };
+    customAnnotations.forEach((a) => {
+      if (a.key) annotations[a.key] = a.value;
+    });
     // Map routes to OpenHQM-compatible format
     const exportRoutes = routes.map((route) => {
       const exportRoute: Record<string, unknown> = {
@@ -163,7 +168,7 @@ export const RouteList: React.FC = () => {
         name: configMapName,
         namespace: configMapNamespace,
         labels,
-        annotations: { managedBy: 'router-manager' },
+        annotations,
       },
       data: {
         'routes.yaml': yaml.dump({ version: '1.0', routes: exportRoutes }, { quotingType: '"' }),
@@ -543,6 +548,43 @@ export const RouteList: React.FC = () => {
                     setCustomLabels(updated);
                   }}
                   slotProps={{ htmlInput: { 'data-testid': 'label-value-input' } }}
+                />
+              </Box>
+            ))}
+          </Box>
+
+          <Box sx={{ mb: 2 }}>
+            <Button
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={() => setCustomAnnotations((prev) => [...prev, { key: '', value: '' }])}
+              data-testid="add-annotation-button"
+            >
+              Add Annotation
+            </Button>
+            {customAnnotations.map((annotation, index) => (
+              <Box key={index} sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                <TextField
+                  size="small"
+                  placeholder="Key"
+                  value={annotation.key}
+                  onChange={(e) => {
+                    const updated = [...customAnnotations];
+                    updated[index].key = e.target.value;
+                    setCustomAnnotations(updated);
+                  }}
+                  slotProps={{ htmlInput: { 'data-testid': 'annotation-key-input' } }}
+                />
+                <TextField
+                  size="small"
+                  placeholder="Value"
+                  value={annotation.value}
+                  onChange={(e) => {
+                    const updated = [...customAnnotations];
+                    updated[index].value = e.target.value;
+                    setCustomAnnotations(updated);
+                  }}
+                  slotProps={{ htmlInput: { 'data-testid': 'annotation-value-input' } }}
                 />
               </Box>
             ))}
