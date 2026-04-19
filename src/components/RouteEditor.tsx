@@ -41,7 +41,13 @@ export const RouteEditor: React.FC = () => {
   const [transformEnabled, setTransformEnabled] = useState(false);
   const originalNameRef = useRef<string>('');
 
+  const isInternalUpdate = useRef(false);
+
   useEffect(() => {
+    if (isInternalUpdate.current) {
+      isInternalUpdate.current = false;
+      return;
+    }
     setLocalRoute(selectedRoute);
     setValidationError('');
     setShowSuccess(false);
@@ -89,6 +95,7 @@ export const RouteEditor: React.FC = () => {
     setValidationError('');
     // Persist to store so state survives tab switches
     const currentName = originalNameRef.current;
+    isInternalUpdate.current = true;
     updateRoute(currentName, updates);
     if (updates.name !== undefined) {
       originalNameRef.current = updates.name;
@@ -131,6 +138,7 @@ export const RouteEditor: React.FC = () => {
     const routeConditions = conds
       .filter((c) => c.field)
       .map((c) => ({ type: c.type as 'payload' | 'header' | 'metadata', field: c.field, operator: c.operator, value: c.value }));
+    isInternalUpdate.current = true;
     updateRoute(originalNameRef.current, { conditions: routeConditions, conditionOperator: operator as 'AND' | 'OR' });
   };
 
