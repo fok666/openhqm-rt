@@ -66,11 +66,11 @@ export class RouteMatcher {
     if (route.match_field) {
       const fieldValue = this.getNestedValue(context.input.payload, route.match_field);
 
-      if (route.match_value === undefined && !route.match_pattern) {
+      if (!route.match_value && !route.match_pattern) {
         return fieldValue !== undefined && fieldValue !== null;
       }
 
-      if (route.match_value !== undefined) {
+      if (route.match_value) {
         if (String(fieldValue) !== String(route.match_value)) {
           return false;
         }

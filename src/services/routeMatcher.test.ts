@@ -17,6 +17,7 @@ describe('RouteMatcher', () => {
     ...overrides,
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test helper with arbitrary payloads
   const createMockContext = (payload?: any): SimulationContext => ({
     id: 'sim-001',
     timestamp: new Date().toISOString(),
