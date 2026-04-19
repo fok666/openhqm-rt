@@ -4,7 +4,7 @@
 
 ### 1. Install Playwright Browsers
 ```bash
-cd openhqm-rm
+cd openhqm-rt
 npm run playwright:install
 ```
 

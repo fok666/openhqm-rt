@@ -2,12 +2,12 @@
 
 > **Client-side web application for creating, testing, and managing OpenHQM routing rules**
 
-[![Deploy to GitHub Pages](https://github.com/fok666/openhqm-rm/actions/workflows/deploy.yml/badge.svg)](https://github.com/fok666/openhqm-rm/actions/workflows/deploy.yml)
-[![CI](https://github.com/fok666/openhqm-rm/actions/workflows/ci.yml/badge.svg)](https://github.com/fok666/openhqm-rm/actions/workflows/ci.yml)
-[![Tests](https://github.com/fok666/openhqm-rm/actions/workflows/test.yml/badge.svg)](https://github.com/fok666/openhqm-rm/actions/workflows/test.yml)
+[![Deploy to GitHub Pages](https://github.com/fok666/openhqm-rt/actions/workflows/deploy.yml/badge.svg)](https://github.com/fok666/openhqm-rt/actions/workflows/deploy.yml)
+[![CI](https://github.com/fok666/openhqm-rt/actions/workflows/ci.yml/badge.svg)](https://github.com/fok666/openhqm-rt/actions/workflows/ci.yml)
+[![Tests](https://github.com/fok666/openhqm-rt/actions/workflows/test.yml/badge.svg)](https://github.com/fok666/openhqm-rt/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[**🚀 Live Demo →**](https://fok666.github.io/openhqm-rm/)
+[**🚀 Live Demo →**](https://fok666.github.io/openhqm-rt/)
 
 ## ✨ Features
 
@@ -34,14 +34,14 @@
 
 No installation needed! Just visit:
 
-**[https://fok666.github.io/openhqm-rm/](https://fok666.github.io/openhqm-rm/)**
+**[https://fok666.github.io/openhqm-rt/](https://fok666.github.io/openhqm-rt/)**
 
 ### Local Development
 
 ```bash
 # Clone the repository
-git clone https://github.com/fok666/openhqm-rm.git
-cd openhqm-rm
+git clone https://github.com/fok666/openhqm-rt.git
+cd openhqm-rt
 
 # Install dependencies
 npm install
@@ -123,7 +123,7 @@ Perfect for testing JQ expressions before using them in routes:
 ## Project Structure
 
 ```
-openhqm-rm/
+openhqm-rt/
 ├── src/
 │   ├── components/      # React components
 │   │   ├── RouteList.tsx
@@ -224,7 +224,7 @@ npm run build
 For GitHub Pages, ensure the `base` path in [vite.config.ts](vite.config.ts) matches your repository name:
 
 ```typescript
-base: mode === 'production' ? '/openhqm-rm/' : '/'
+base: mode === 'production' ? '/openhqm-rt/' : '/'
 ```
 
 ## Browser Compatibility
@@ -300,9 +300,9 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
 Need help? Here are your options:
 
 - 📖 Read the [SDD](SDD.md) for detailed technical documentation
-- 🐛 Report bugs via [GitHub Issues](https://github.com/fok666/openhqm-rm/issues)
-- 💡 Request features via [GitHub Issues](https://github.com/fok666/openhqm-rm/issues)
-- 💬 Ask questions in [GitHub Discussions](https://github.com/fok666/openhqm-rm/discussions)
+- 🐛 Report bugs via [GitHub Issues](https://github.com/fok666/openhqm-rt/issues)
+- 💡 Request features via [GitHub Issues](https://github.com/fok666/openhqm-rt/issues)
+- 💬 Ask questions in [GitHub Discussions](https://github.com/fok666/openhqm-rt/discussions)
 
 ## 🔗 Related Projects
 
@@ -319,6 +319,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Made with 🤖 for the OpenHQM ecosystem**
 
-[Report Bug](https://github.com/fok666/openhqm-rm/issues) · [Request Feature](https://github.com/fok666/openhqm-rm/issues) · [Documentation](SDD.md)
+[Report Bug](https://github.com/fok666/openhqm-rt/issues) · [Request Feature](https://github.com/fok666/openhqm-rt/issues) · [Documentation](SDD.md)
 
 </div>

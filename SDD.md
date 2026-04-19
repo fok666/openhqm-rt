@@ -11,7 +11,7 @@
 
 OpenHQM Router Manager is a **pure client-side** web application for creating and testing OpenHQM routing rules. It runs entirely in the browser with no backend required. Users can visually design routes, test JQ transformations in real-time, simulate message routing, and export configurations as Kubernetes ConfigMaps.
 
-**Deployment**: GitHub Pages static site - `https://yourusername.github.io/openhqm-rm/`
+**Deployment**: GitHub Pages static site - `https://yourusername.github.io/openhqm-rt/`
 
 ### 1.1 Purpose
 Provide an easy-to-use, no-installation-required web tool for creating and testing OpenHQM route configurations. Users can access it instantly from any browser, create routes visually, test with sample data, and download YAML configurations for deployment. Import and export functionality allows users to manage their routes as Kubernetes ConfigMaps.

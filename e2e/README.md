@@ -46,7 +46,7 @@ This directory contains comprehensive E2E tests for the OpenHQM Router Manager w
    - Tests import/export compatibility
    - Verifies JQ transformations from examples
    - Ensures Router Manager handles real-world configs
-   - Maintains contract between openhqm and openhqm-rm
+   - Maintains contract between openhqm and openhqm-rt
 
 ## 🚀 Running Tests
 

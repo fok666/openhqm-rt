@@ -18,8 +18,8 @@ Thank you for your interest in contributing to OpenHQM Router Manager! This docu
 1. Fork the repository on GitHub
 2. Clone your fork:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/openhqm-rm.git
-   cd openhqm-rm
+   git clone https://github.com/YOUR_USERNAME/openhqm-rt.git
+   cd openhqm-rt
    ```
 
 ### 2. Install Dependencies

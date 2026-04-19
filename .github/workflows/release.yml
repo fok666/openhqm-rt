@@ -74,7 +74,7 @@ jobs:
           ### 🚀 Deployment
           
           This application is automatically deployed to GitHub Pages:
-          - **Live Demo**: https://fok666.github.io/openhqm-rm/
+          - **Live Demo**: https://fok666.github.io/openhqm-rt/
           
           ### 📦 Build Artifacts
           
@@ -101,7 +101,7 @@ jobs:
           
           ### 📖 Documentation
           
-          See the [README](https://github.com/fok666/openhqm-rm/blob/main/README.md) for usage instructions.
+          See the [README](https://github.com/fok666/openhqm-rt/blob/main/README.md) for usage instructions.
           EOF
 
       - name: Create Release
