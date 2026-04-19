@@ -46,8 +46,8 @@ export const ConfigMapManager: React.FC = () => {
           ? storageService.exportToYAML(routes)
           : storageService.exportToJSON(routes);
       return content;
-    } catch (err: any) {
-      setError(`Export failed: ${err.message}`);
+    } catch (err: unknown) {
+      setError(`Export failed: ${err instanceof Error ? err.message : String(err)}`);
       return '';
     }
   };
@@ -66,8 +66,8 @@ export const ConfigMapManager: React.FC = () => {
       storageService.downloadFile(content, filename, mimeType);
       setError('');
       setExportDialogOpen(false);
-    } catch (err: any) {
-      setError(`Download failed: ${err.message}`);
+    } catch (err: unknown) {
+      setError(`Download failed: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -77,8 +77,8 @@ export const ConfigMapManager: React.FC = () => {
       await navigator.clipboard.writeText(content);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 3000);
-    } catch (err: any) {
-      setError(`Copy failed: ${err.message}`);
+    } catch (err: unknown) {
+      setError(`Copy failed: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -96,8 +96,8 @@ export const ConfigMapManager: React.FC = () => {
         setImportError('');
         setImportSuccess(true);
         setTimeout(() => setImportSuccess(false), 3000);
-      } catch (err: any) {
-        setError(`Import failed: ${err.message}`);
+      } catch (err: unknown) {
+        setError(`Import failed: ${err instanceof Error ? err.message : String(err)}`);
       }
     };
     reader.readAsText(file);
@@ -113,8 +113,8 @@ export const ConfigMapManager: React.FC = () => {
       setImportDialogOpen(false);
       setImportContent('');
       setTimeout(() => setImportSuccess(false), 3000);
-    } catch (err: any) {
-      setImportError(`Invalid ConfigMap format: ${err.message}`);
+    } catch (err: unknown) {
+      setImportError(`Invalid ConfigMap format: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -146,6 +146,7 @@ export const ConfigMapManager: React.FC = () => {
     } else {
       setPreview('');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routes, exportFormat]);
 
   return (
