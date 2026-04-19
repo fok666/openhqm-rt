@@ -251,7 +251,7 @@ export const RouteEditor: React.FC = () => {
               value={condition.operator}
               onChange={(e) => handleUpdateCondition(index, { operator: e.target.value })}
               data-testid="condition-operator-select"
-              style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', flex: 1 }}
+              style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', minWidth: '80px' }}
             >
               <option value="equals">equals</option>
               <option value="contains">contains</option>
