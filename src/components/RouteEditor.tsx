@@ -236,7 +236,7 @@ export const RouteEditor: React.FC = () => {
           <Box sx={{ mb: 2 }}>
             <select
               value={conditionOperator}
-              onChange={(e) => setConditionOperator(e.target.value)}
+              onChange={(e) => { setConditionOperator(e.target.value); syncConditionsToStore(conditions, e.target.value); }}
               data-testid="condition-operator"
               style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
             >
