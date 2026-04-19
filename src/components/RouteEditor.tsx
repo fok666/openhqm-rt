@@ -168,9 +168,8 @@ export const RouteEditor: React.FC = () => {
           fullWidth
           margin="normal"
           required
-          slotProps={{ htmlInput: { 'data-testid': 'route-name-input', 'aria-required': 'true', 'aria-describedby': 'route-name-help' } }}
+          slotProps={{ htmlInput: { 'data-testid': 'route-name-input', 'aria-required': 'true', 'aria-describedby': 'route-name-help' }, formHelperText: { id: 'route-name-help' } }}
           helperText="Unique identifier for this route"
-          FormHelperTextProps={{ id: 'route-name-help' }}
         />
         <TextField
           label="Description"
@@ -504,9 +503,9 @@ export const RouteEditor: React.FC = () => {
                 const actions = [...(localRoute.actions || [])];
                 const oldKey = Object.keys(actions[index]).find(k => k !== 'type') || '';
                 const val = oldKey ? actions[index][oldKey] : '';
-                const newAction: Record<string, string> = { type: actions[index].type };
+                const newAction = { type: actions[index].type } as Record<string, string> & { type: string };
                 if (e.target.value) newAction[e.target.value] = val || '';
-                actions[index] = newAction;
+                actions[index] = newAction as RouteAction;
                 handleUpdate({ actions });
               }}
               sx={{ flex: 1 }}
