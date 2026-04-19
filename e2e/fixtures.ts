@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- test fixture types */
 import { test as base, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
@@ -191,6 +192,9 @@ export const test = base.extend<{
     async ({ page }, use) => {
       await page.goto('/');
       await page.evaluate(() => localStorage.clear());
+      // Reload so the app starts with a clean state
+      await page.reload();
+      await page.waitForLoadState('networkidle');
       await use();
     },
     { auto: true },
