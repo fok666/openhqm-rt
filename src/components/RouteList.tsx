@@ -125,6 +125,37 @@ export const RouteList: React.FC = () => {
     customLabels.forEach((l) => {
       if (l.key) labels[l.key] = l.value;
     });
+    // Map routes to OpenHQM-compatible format
+    const exportRoutes = routes.map((route) => {
+      const exportRoute: Record<string, unknown> = {
+        name: route.name,
+        endpoint: route.endpoint,
+      };
+      if (route.description) exportRoute.description = route.description;
+      if (route.priority !== undefined) exportRoute.priority = route.priority;
+      if (route.enabled === false) exportRoute.enabled = false;
+      if (route.method) exportRoute.method = route.method;
+      if (route.match_field) exportRoute.match_field = route.match_field;
+      if (route.match_value) exportRoute.match_value = route.match_value;
+      if (route.match_pattern) exportRoute.match_pattern = route.match_pattern;
+      if (route.conditions && route.conditions.length > 0) {
+        exportRoute.conditions = route.conditions;
+        if (route.conditionOperator) exportRoute.conditionOperator = route.conditionOperator;
+      }
+      if (route.transform_type && route.transform_type !== 'passthrough') {
+        exportRoute.transform = {
+          type: route.transform_type,
+          jqExpression: route.transform,
+        };
+      }
+      if (route.actions && route.actions.length > 0) {
+        exportRoute.actions = route.actions;
+      }
+      if (route.header_mappings) exportRoute.header_mappings = route.header_mappings;
+      if (route.timeout) exportRoute.timeout = route.timeout;
+      if (route.max_retries) exportRoute.max_retries = route.max_retries;
+      return exportRoute;
+    });
     const configMap = {
       apiVersion: 'v1',
       kind: 'ConfigMap',
@@ -135,7 +166,7 @@ export const RouteList: React.FC = () => {
         annotations: { managedBy: 'router-manager' },
       },
       data: {
-        'routes.yaml': yaml.dump({ version: '1.0', routes }, { quotingType: '"' }),
+        'routes.yaml': yaml.dump({ version: '1.0', routes: exportRoutes }, { quotingType: '"' }),
       },
     };
     return format === 'json' ? JSON.stringify(configMap, null, 2) : yaml.dump(configMap);
@@ -325,6 +356,7 @@ export const RouteList: React.FC = () => {
             startIcon={<DownloadIcon />}
             onClick={handleOpenExport}
             data-testid="export-button"
+            aria-label="Export routes"
             sx={{ flex: 1 }}
           >
             Export
@@ -335,6 +367,7 @@ export const RouteList: React.FC = () => {
             startIcon={<UploadIcon />}
             onClick={handleOpenImport}
             data-testid="import-button"
+            aria-label="Import routes"
             sx={{ flex: 1 }}
           >
             Import
