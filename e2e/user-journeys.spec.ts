@@ -276,8 +276,8 @@ data:
     // Step 4: Check execution trace to see what went wrong
     await page.click('[data-testid="show-trace-button"]');
     
-    const trace = page.locator('[data-testid="trace-step"]');
-    await expect(trace).toContainText('condition failed');
+    const trace = page.locator('[data-testid="trace-step"]').filter({ hasText: 'condition failed' });
+    await expect(trace).toBeVisible();
     await expect(trace).toContainText('custommer.type'); // Shows the typo
     
     // Step 5: Debug with JQ Playground
